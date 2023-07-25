@@ -4,6 +4,30 @@
 #include <string>
 #include "Ir.h"
 #include <unordered_map> 
+
+std::unordered_map<std::string, StackObj*> name2stackobj;
+std::unordered_map<StackObj*, std::string> stackobj2name;
+int now_sp;
+
+BrInstrType CMP2Br(CMP_Type type) {
+    switch(type) {
+        case CMP_Type::eq: 
+            return BrInstrType::Beq;
+        case CMP_Type::ne: 
+            return BrInstrType::Bne;
+        case CMP_Type::sgt: 
+            return BrInstrType::Bgt;
+        case CMP_Type::sge: 
+            return BrInstrType::Bge;
+        case CMP_Type::slt: 
+            return BrInstrType::Blt;
+        case CMP_Type::sle: 
+            return BrInstrType::Ble;
+        default: std::cerr<<"invalid LLVM IR\n";
+            return BrInstrType::Unknown;
+    }
+}
+
 RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name){
         start = new RVBlock(IRfunc->name + "_start");
         blocks.emplace_back(start);

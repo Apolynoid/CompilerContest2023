@@ -1,17 +1,17 @@
+#ifndef DEF_GENERATOR
+#define DEF_GENERATOR
+
 #include "Ir.h"
 #include <unordered_map>
 #include <string>
 #include <vector>
 #include <memory>
 #include "RVBlock.hpp"// Add this header file
+#include "RVBlock.h"
+
 using namespace std;
-extern unordered_map<BasicBlock*,RVBlock*> IRB2RVB;
-extern unordered_map<RVBlock*,BasicBlock*> RVB2IRB;
-extern int now_reg;
+
 extern int GetRegFromIRV(string IRV);
-std::unordered_map<std::string, StackObj*> name2stackobj;
-std::unordered_map<StackObj*, std::string> stackobj2name;
-int now_sp;
 struct Generator;
 enum CMP_Type {
     eq, ne, sgt, sge, slt, sle
@@ -22,17 +22,7 @@ struct CMP_Context {
     RVBlock* true_bb;
     RVBlock* false_bb;
 };
-BrInstrType CMP2Br(CMP_Type type) {
-    switch(type) {
-        case CMP_Type::eq: return BrInstrType::Beq;
-        case CMP_Type::ne: return BrInstrType::Bne;
-        case CMP_Type::sgt: return BrInstrType::Bgt;
-        case CMP_Type::sge: return BrInstrType::Bge;
-        case CMP_Type::slt: return BrInstrType::Blt;
-        case CMP_Type::sle: return BrInstrType::Ble;
-        default: std::cerr<<"invalid LLVM IR\n";
-    }
-}
+
 class RVFunction {
 private:
     string name;
@@ -66,3 +56,5 @@ public:
     void print();
     friend class RVFunction;
 };
+
+#endif

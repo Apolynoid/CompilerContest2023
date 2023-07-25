@@ -43,6 +43,8 @@ SRCS += ./ir/Symbol.cpp
 SRCS += ./ir/Type.cpp
 SRCS += ./ir/NodeVisit.cpp
 SRCS += ./backend/generator.cc
+SRCS += ./backend/RVBlock.cpp
+SRCS += ./backend/instruction.cpp
 SRCS += main.cpp
 
 main:

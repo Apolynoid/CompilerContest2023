@@ -1,4 +1,6 @@
-#pragma once
+#ifndef DEF_INSTRUCTION
+#define DEF_INSTRUCTION
+
 #include <string>
 #include <sstream>
 #include <vector>
@@ -8,8 +10,9 @@
 #include "register.h"
 #include "enums.h"
 
+class RVBlock;
+
 using namespace std;
-struct RVBlock;
 
 struct StackObj {
     int offset;
@@ -31,7 +34,9 @@ inline stringstream &operator<<(stringstream& out, const Register Reg) {
         case tp: out << "tp"; break;
         default: out << "x" << Reg-Register::t0; break;
     }
+    return out;
 }
+
 class instruction {
 protected:
     virtual vector<Register> getUseRegs() = 0;
@@ -89,12 +94,6 @@ public:
             default: std::cerr<<"invalid LLVM IR\n";
         }
     }
-};
-const unordered_map<RRInstrType, string> RRInstr::RRInstrTypeMap = {
-    {ADD, "add"}, {SUB, "sub"}, {MUL, "mul"}, {SDIV, "div"}, {SREM, "rem"}, {UREM, "remu"}, {UDIV, "divu"},
-    {Sll, "sll"}, {Sra, "sra"}, {Srl, "srl"},
-    {AND, "and"}, {OR, "or"}, {XOR, "xor"},
-    {Seq, "seqz"}, {Sne, "snez"}, {Sgt, "sgtz"}, {Sge, "sgez"}, {Slt, "sltz"}, {Sle, "slez"}
 };
 
 class RIInstr : public instruction {
@@ -186,7 +185,7 @@ public:
     void GeneratorRiscvCode(stringstream &out) override;
 };
 enum BrInstrType {
-    Beq, Bne, Bgt, Bge, Blt, Ble
+    Unknown, Beq, Bne, Bgt, Bge, Blt, Ble
 };
 
 inline stringstream& operator<<(stringstream &out, BrInstrType type) {
@@ -199,6 +198,7 @@ inline stringstream& operator<<(stringstream &out, BrInstrType type) {
         case Blt: out<<"blt"; break;
         default: std::cerr<<"invalid LLVM IR\n";
     }
+    return out;
 }
 class BrInstr : public instruction {
 private:
@@ -308,4 +308,4 @@ public:
     }
 };
 
-
+#endif

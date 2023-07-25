@@ -1,29 +1,20 @@
-#pragma once
+#ifndef DEF_RVBLOCK
+#define DEF_RVBLOCK
+
 #include <string>
 #include <memory>
-#include "instruction.h"
 #include <unordered_set>
 #include <unordered_map>
 #include "Ir.h"
 #include "enums.h"
+#include "instruction.h"
 
 using namespace std;
-unordered_map<BasicBlock*,RVBlock*> IRB2RVB;
-unordered_map<RVBlock*,BasicBlock*> RVB2IRB;
-int now_reg;
-unordered_map<string,int> IRV2RVReg;
-int GetRegFromIRV(string IRV) {
-    if(IRV2RVReg.find(IRV) == IRV2RVReg.end()) {
-        IRV2RVReg[IRV] = ++ now_reg;
-    }
-    return IRV2RVReg[IRV];
-}
-struct RVBlock;
 
 class RVBlock{
 public:
     string name;
-    vector<unique_ptr<instruction>> instructions;
+    vector<unique_ptr<instruction> > instructions;
     unordered_set<RVBlock*> prev,succ;
     unordered_set<Register> liveIn,liveOut,liveDef,liveUse;
     RVBlock(string name):name(name){};
@@ -64,9 +55,5 @@ namespace std {
         }
     };
 }
-void JmpInstr::GeneratorRiscvCode(stringstream &out){
-        out<<'\t'<<"j\t"<<target->name<<'\n';
-    }
-void BrInstr::GeneratorRiscvCode(stringstream &out){
-        out<<'\t'<<"beq\t"<<rs1<<", "<<rs2<<", "<<target->name<<'\n';
-    }
+
+#endif

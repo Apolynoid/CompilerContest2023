@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include "NodeVisit.h"
-#include "backend/generator.h"
+#include "generator.h"
 
 extern Node* root;
 extern int yyparse();
