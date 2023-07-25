@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <sstream>
 #include <vector>
@@ -6,7 +7,15 @@
 #include <iostream>
 #include "register.h"
 #include "enums.h"
+
 using namespace std;
+struct RVBlock;
+
+struct StackObj {
+    int offset;
+    int size;
+    StackObj(int offset, int size) : offset(offset), size(size) {};
+};
 enum RRInstrType {
     ADD, SUB, MUL, SDIV, SREM, UDIV, UREM, Sll, Sra, Srl, AND, OR, XOR, Seq, Sne, Sgt, Sge, Slt, Sle
 };
@@ -140,7 +149,7 @@ public:
         return {rd};
     }
     void GeneratorRiscvCode(stringstream &out) override{
-        out<<'\t'<<"lw\t"<<rd<<", "<<imm<<"("<<rs1<<')\n';
+        out<<'\t'<<"lw\t"<<rd<<", "<<imm<<"("<<rs1<<')';
     }
 };
 
@@ -166,15 +175,20 @@ class JmpInstr : public instruction {
 private:
     RVBlock *target;
 public:
+    vector<Register> getUseRegs()override {
+        return {};
+    }
+    vector<Register> getDefRegs()override {
+        return {};
+    }
     JmpInstr(RVBlock *target) : target(target) {
     };
-    void GeneratorRiscvCode(stringstream &out) override{
-        out<<'\t'<<"j\t"<<target->name<<'\n';
-    }
+    void GeneratorRiscvCode(stringstream &out) override;
 };
 enum BrInstrType {
     Beq, Bne, Bgt, Bge, Blt, Ble
 };
+
 inline stringstream& operator<<(stringstream &out, BrInstrType type) {
     switch(type) {
         case Beq: out<<"beq"; break;
@@ -197,9 +211,10 @@ public:
     vector<Register> getUseRegs()override {
         return {rs1, rs2};
     }
-    void GeneratorRiscvCode(stringstream &out) override{
-        out<<'\t'<<type<<"\t"<<rs1<<", "<<rs2<<", "<<target->name<<'\n';
-    } // todo br false
+    vector<Register> getDefRegs()override {
+        return {};
+    }
+    void GeneratorRiscvCode(stringstream &out) override;
 };
 
 class CallInstr: public instruction {
@@ -207,7 +222,14 @@ private:
     string name;
 public:
     void GeneratorRiscvCode(stringstream &out) override {
+        // todo
         out<<"call "<<name<<endl;
+    }
+    vector<Register> getUseRegs()override {
+        return {};
+    }
+    vector<Register> getDefRegs()override {
+        return {};
     }
 };
 
@@ -222,8 +244,67 @@ public:
     vector<Register> getDefRegs()override {
         return {rd};
     }
+    // Context?
     void GeneratorRiscvCode(stringstream &out) override{
         out<<'\t'<<"mv\t"<<rd<<", "<<rs<<'\n';
+    }
+};
+
+
+class LoadStackInstr: public instruction {
+private:
+    Register rd;
+    StackObj *obj;
+    int offset;
+public:
+    LoadStackInstr(Register rd, StackObj *obj, int offset) : rd(rd), obj(obj), offset(offset) {};
+    std::vector<Register> getDefRegs()override {
+        return {rd};
+    }
+};
+
+class StoreStackInstr: public instruction {
+private:
+    Register rs;
+    StackObj *obj;
+    int offset;
+public:
+    StoreStackInstr(Register rs, StackObj *obj, int offset) : rs(rs), obj(obj), offset(offset) {};
+    std::vector<Register> getUseRegs()override {
+        return {rs};
+    }
+};
+
+
+class RetInstr: public instruction {
+private:
+    bool withvalue;
+public:
+    RetInstr(bool withvalue) : withvalue(withvalue) {};
+    // Context?
+    void GeneratorRiscvCode(stringstream &out) override{
+      //  if(withvalue) {
+            out<<'\t'<<"ret"<<'\n';
+      //  } else {
+       //     out<<'\t'<<"ret"<<'\n';
+      //  }
+    }
+};
+
+class LiInstr: public instruction {
+private:
+    Register rd;
+    int imm;
+public:
+    LiInstr(Register rd, int imm) : rd(rd), imm(imm) {};
+    vector<Register> getDefRegs()override {
+        return {rd};
+    }
+    vector<Register> getUseRegs()override {
+        return {};
+    }
+    void GeneratorRiscvCode(stringstream &out) override{
+        out<<'\t'<<"li\t"<<rd<<", "<<imm<<'\n';
     }
 };
 

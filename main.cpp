@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include "NodeVisit.h"
-//#include "backend/generator.h"
+#include "backend/generator.h"
 
 extern Node* root;
 extern int yyparse();
@@ -30,14 +30,9 @@ int main(int argc, char** argv) {
     //Generator* generator = new Generator(m);
     //generator->GenerateRisc_V();
    // generator->print();
-   std::string IR = m->print();
-    if (print_ir) {
-       std::cout << IR << std::endl;
-       std::string IRtest="test.ll";
-       std::ofstream os;
-       os.open(IRtest,std::ios::trunc);
-        os<<IR;
-        os.close();
-    }
+    std::string IR = m->print();
+    Generator* generator = new Generator(m);
+    generator->GenerateRisc_V();
+    generator->print();
     return 0;
 }

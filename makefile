@@ -42,7 +42,7 @@ SRCS += ./ir/Ir.cpp
 SRCS += ./ir/Symbol.cpp
 SRCS += ./ir/Type.cpp
 SRCS += ./ir/NodeVisit.cpp
-#SRCS += ./backend/generator.cc
+SRCS += ./backend/generator.cc
 SRCS += main.cpp
 
 main:
