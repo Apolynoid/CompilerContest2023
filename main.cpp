@@ -27,11 +27,13 @@ int main(int argc, char** argv) {
     NodeVisit * nodevisit = new NodeVisit();
     nodevisit->visit(static_cast<RootNode*>(root));
     Module* m = nodevisit->getModule();
+    cout<<m->print();
+    
     //Generator* generator = new Generator(m);
     //generator->GenerateRisc_V();
    // generator->print();
-    std::string IR = m->print();
-    Generator* generator = new Generator(m);
+   // std::string IR = m->print();
+   Generator* generator = new Generator(m);
     generator->GenerateRisc_V();
     generator->print();
     return 0;

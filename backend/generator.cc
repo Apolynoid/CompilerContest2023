@@ -31,6 +31,9 @@ BrInstrType CMP2Br(CMP_Type type) {
 RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name){
         start = new RVBlock(IRfunc->name + "_start");
         blocks.emplace_back(start);
+        if(IRfunc->basic_blocks.size()==0) {
+            return;
+        }
         for(auto bb: IRfunc->basic_blocks){
             unique_ptr<RVBlock> new_block(new RVBlock(".B"+to_string(gene->num_block++)));
             IRB2RVB[bb] = new_block.get();
@@ -220,6 +223,9 @@ void Generator::GenerateRisc_V(){
 }
 void Generator::GenerateFunctionCode() {
     for(auto func: module->func_list) {
+        if(func->basic_blocks.size()==0) {
+            continue;
+        }
         targetCode.push_back("");
         targetCode.push_back(".global "+func->name);
         targetCode.push_back(".type "+func->name+", @function");

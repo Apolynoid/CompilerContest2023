@@ -48,4 +48,4 @@ SRCS += ./backend/instruction.cpp
 SRCS += main.cpp
 
 main:
-	g++ -o main $(SRCS) $(INCLUDES)
+	g++ -g -o main $(SRCS) $(INCLUDES)
