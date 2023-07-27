@@ -149,7 +149,8 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, sp, s_obj->offset-now_sp-s_obj->size));
                             }else if(global_var.find(src)!=global_var.end()){
                                 Register new_reg2 = reg_alloc->GetRegFromIRV(src);
-                                blocks[i]->addInstruction(make_unique<loadAddr>(new_reg, new_reg2,0));
+                                blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, src));
+                                blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, new_reg2, 0));
                             }
                             break;
                         }
@@ -231,8 +232,8 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                         case Xor:{
                             auto ins = static_cast<BinaryInst*>(instr);
                             Register rd = reg_alloc->GetRegFromIRV(instr->name);
-                            bool is_rr = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
-                            if(!is_rr) {
+                            bool is_rri = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr||dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
+                            if(is_rri) {
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);

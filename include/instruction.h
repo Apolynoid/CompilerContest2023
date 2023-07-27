@@ -20,7 +20,7 @@ struct StackObj {
     StackObj(int offset, int size) : offset(offset), size(size) {};
 };
 enum RRInstrType {
-    ADD, SUB, MUL, SDIV, SREM, UDIV, UREM, Sll, Sra, Srl, AND, OR, XOR, Seq, Sne, Sgt, Sge, Slt, Sle
+    ADD = 3, SUB, MUL, SDIV, SREM, UDIV, UREM, Sll, Sra, Srl, AND, OR, XOR, Seq, Sne, Sgt, Sge, Slt, Sle
 };
 enum RIInstrType {
     Addi, Slli, Srli, Srai, Slti, Sltiu, Xori, Ori, Andi
