@@ -860,167 +860,167 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 #line 27 "lexerer.l"
-{printf("%s : INT\n", yytext); return INT; }
+{/* printf("%s : INT\n", yytext); */ return INT; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 28 "lexerer.l"
-{printf("%s : FLOAT\n", yytext); return FLOAT; }
+{/* printf("%s : FLOAT\n", yytext); */ return FLOAT; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 #line 29 "lexerer.l"
-{printf("%s : VOID\n", yytext); return VOID; }
+{/* printf("%s : VOID\n", yytext); */ return VOID; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 30 "lexerer.l"
-{printf("%s : CONST\n", yytext); return CONST; }
+{/* printf("%s : CONST\n", yytext); */ return CONST; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 31 "lexerer.l"
-{printf("%s : RETURN\n", yytext); ; return RETURN; }
+{/* printf("%s : RETURN\n", yytext); */  return RETURN; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 32 "lexerer.l"
-{printf("%s : IF\n", yytext); return IF; }
+{/* printf("%s : IF\n", yytext); */ return IF; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 33 "lexerer.l"
-{printf("%s : ELSE\n", yytext); return ELSE; }
+{/* printf("%s : ELSE\n", yytext); */ return ELSE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 35 "lexerer.l"
-{printf("%s : WHILE\n", yytext); return WHILE; }
+{/* printf("%s : WHILE\n", yytext); */ return WHILE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 37 "lexerer.l"
-{printf("%s : BREAK\n", yytext); return BREAK; }
+{/* printf("%s : BREAK\n", yytext); */ return BREAK; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 38 "lexerer.l"
-{printf("%s : CONTINUE\n", yytext); return CONTINUE; }
+{/* printf("%s : CONTINUE\n", yytext);  */return CONTINUE; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 40 "lexerer.l"
-{printf("%s : LP\n", yytext); return LP; }
+{/* printf("%s : LP\n", yytext);  */return LP; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 41 "lexerer.l"
-{printf("%s : RP\n", yytext); return RP; }
+{/* printf("%s : RP\n", yytext); */ return RP; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 42 "lexerer.l"
-{printf("%s : LB\n", yytext); return LB; }
+{/* printf("%s : LB\n", yytext); */ return LB; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 43 "lexerer.l"
-{printf("%s : RB\n", yytext); return RB; }
+{/* printf("%s : RB\n", yytext);  */return RB; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 44 "lexerer.l"
-{printf("%s : LC\n", yytext); return LC; }
+{/* printf("%s : LC\n", yytext); */ return LC; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 45 "lexerer.l"
-{printf("%s : RC\n", yytext); return RC; }
+{/* printf("%s : RC\n", yytext); */ return RC; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 46 "lexerer.l"
-{printf("%s : COMMA\n", yytext); return COMMA; }
+{/* printf("%s : COMMA\n", yytext); */ return COMMA; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 47 "lexerer.l"
-{printf("%s : SEMICOLON\n", yytext); return SEMICOLON; }
+{/* printf("%s : SEMICOLON\n", yytext); */ return SEMICOLON; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 48 "lexerer.l"
-{printf("%s : NOT\n", yytext); return NOT; }
+{/* printf("%s : NOT\n", yytext); */ return NOT; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 49 "lexerer.l"
-{printf("%s : ASSIGN\n", yytext); return ASSIGN; }
+{/* printf("%s : ASSIGN\n", yytext); */ return ASSIGN; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 50 "lexerer.l"
-{printf("%s : MINUS\n", yytext); return MINUS; }
+{/* printf("%s : MINUS\n", yytext); */ return MINUS; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 51 "lexerer.l"
-{printf("%s : ADD\n", yytext); return ADD; }
+{/* printf("%s : ADD\n", yytext); */ return ADD; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 52 "lexerer.l"
-{printf("%s : MUL\n", yytext); return MUL; }
+{/* printf("%s : MUL\n", yytext); */ return MUL; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 53 "lexerer.l"
-{printf("%s : DIV\n", yytext); return DIV; }
+{/* printf("%s : DIV\n", yytext); */ return DIV; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 54 "lexerer.l"
-{printf("%s : MOD\n", yytext); return MOD; }
+{/* printf("%s : MOD\n", yytext); */ return MOD; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 55 "lexerer.l"
-{printf("%s : AND\n", yytext); return AND; }
+{/* printf("%s : AND\n", yytext); */ return AND; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 56 "lexerer.l"
-{printf("%s : OR\n", yytext); return OR; }
+{/* printf("%s : OR\n", yytext); */ return OR; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 57 "lexerer.l"
-{printf("%s : EQ\n", yytext); return EQ; }
+{/* printf("%s : EQ\n", yytext); */ return EQ; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
 #line 58 "lexerer.l"
-{printf("%s : NE\n", yytext); return NE; }
+{/* printf("%s : NE\n", yytext); */ return NE; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 59 "lexerer.l"
-{printf("%s : LT\n", yytext); return LT; }
+{/* printf("%s : LT\n", yytext);  */return LT; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 60 "lexerer.l"
-{printf("%s : LE\n", yytext); return LE; }
+{/* printf("%s : LE\n", yytext); */ return LE; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 61 "lexerer.l"
-{printf("%s : GT\n", yytext); return GT; }
+{/* printf("%s : GT\n", yytext); */ return GT; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 62 "lexerer.l"
-{printf("%s : GE\n", yytext); return GE; }
+{/* printf("%s : GE\n", yytext);  */return GE; }
 	YY_BREAK
 case 34:
 /* rule 34 can match eol */
@@ -1042,7 +1042,7 @@ YY_RULE_SETUP
 {
                         yylval.int_val=(int)strtol(yytext, (char **)NULL, 10);
                         int x = (int)strtol(yytext, (char **)NULL, 10);
-                        printf("%s:%d\n",yytext,x);
+                        /* printf("%s:%d\n",yytext,x); */
                         return INT_LIT;
                     }
 	YY_BREAK
@@ -1052,7 +1052,7 @@ YY_RULE_SETUP
 {
                         yylval.int_val = (int)strtol(yytext, (char **)NULL, 8);
                         int x = (int)strtol(yytext, (char **)NULL, 8);
-                        printf("%s:%d\n",yytext,x);
+                        /* printf("%s:%d\n",yytext,x); */
                         return INT_LIT;
                     }
 	YY_BREAK
@@ -1062,7 +1062,7 @@ YY_RULE_SETUP
 {
                         yylval.int_val = (int)strtol(yytext, (char **)NULL, 16);
                         int x = (int)strtol(yytext, (char **)NULL, 16);
-                        printf("%s:%d\n",yytext,x);
+                        /* printf("%s:%d\n",yytext,x); */
                         return INT_LIT;
                     }
 	YY_BREAK
@@ -1072,7 +1072,7 @@ YY_RULE_SETUP
 {
                         yylval.float_val = (float)strtof(yytext, (char **)NULL);
                         float x = (float)strtof(yytext, (char **)NULL);
-                        printf("%s:%f\n",yytext,x);
+                        /* printf("%s:%f\n",yytext,x); */
                         return FLOAT_LIT;
                     }
 	YY_BREAK
@@ -1082,7 +1082,7 @@ YY_RULE_SETUP
 {
                         yylval.float_val = (float)strtof(yytext, (char **)NULL);
                         float x = (float)strtof(yytext, (char **)NULL);
-                        printf("%s:%f\n",yytext,x);
+                        /* printf("%s:%f\n",yytext,x); */
                         return FLOAT_LIT;
                     }
 	YY_BREAK
@@ -1093,7 +1093,7 @@ YY_RULE_SETUP
                         yylval.str_val = (char *)malloc(strlen(yytext) + 1);
                         strcpy(yylval.str_val, yytext);
                         yylval.str_val[strlen(yytext)] = '\0';
-                        printf("%s:ID\n",yytext);
+                        /* printf("%s:ID\n",yytext); */
                         return ID;
                     }
 	YY_BREAK

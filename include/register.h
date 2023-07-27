@@ -23,7 +23,7 @@ private:
     RVFunction* func;
     int now_treg = 0;
     unordered_map<string,Register> IRV2Reg;
-    unordered_set<Register,string> Reg2IRV;
+    unordered_map<Register,string> Reg2IRV;
 public:
     RegisterAllocator(RVFunction* func);
     Register GetRegFromIRV(string IRV);

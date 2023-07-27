@@ -23,7 +23,7 @@ Register RegisterAllocator::AllocateReg(){
 }
 
 Register RegisterAllocator::GetRegFromIRV(string IRV) {
-    if(IRV2Reg.find(IRV) == IRV2RVReg.end()) {
+    if(IRV2Reg.find(IRV) == IRV2Reg.end()) {
         IRV2Reg[IRV] = this->AllocateReg();
         Reg2IRV[IRV2Reg[IRV]] = IRV;
     }
