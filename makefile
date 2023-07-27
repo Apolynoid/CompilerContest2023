@@ -45,7 +45,10 @@ SRCS += ./ir/NodeVisit.cpp
 SRCS += ./backend/generator.cc
 SRCS += ./backend/RVBlock.cpp
 SRCS += ./backend/instruction.cpp
+SRCS += ./backend/register.cpp
 SRCS += main.cpp
 
 main:
 	g++ -g -o main $(SRCS) $(INCLUDES)
+test.s:test.ll
+	llc -O0 --march=riscv64 -o test.s test.ll

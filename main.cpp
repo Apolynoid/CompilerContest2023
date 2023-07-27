@@ -27,8 +27,13 @@ int main(int argc, char** argv) {
     NodeVisit * nodevisit = new NodeVisit();
     nodevisit->visit(static_cast<RootNode*>(root));
     Module* m = nodevisit->getModule();
-    cout<<m->print();
-    
+    //cout<<m->print();
+    std::string write_file_name = "test.ll";
+    ofstream os;    
+    os.open(write_file_name, ios::out);
+    os<<m->print();  
+    os.close();
+
     //Generator* generator = new Generator(m);
     //generator->GenerateRisc_V();
    // generator->print();

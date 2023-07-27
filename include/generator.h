@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "RVBlock.hpp"// Add this header file
 #include "RVBlock.h"
 
 using namespace std;
@@ -29,12 +28,15 @@ private:
     RVBlock* start;
     vector<unique_ptr<RVBlock>> blocks;
     vector<Register> argu_regs;
+    unordered_map<string,StackObj*> name2stackobj;
+    int stack_size;
 
 public:
     void GenerateRiscv(stringstream &out){
         out<<name<<":\n";
        // start->GenerateRiscv(out);
         for(int i = 1;i<blocks.size();i++){
+            out<<blocks[i]->name<<":\n";
             blocks[i]->GenerateRiscv(out);
         }
     }

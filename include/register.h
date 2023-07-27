@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <string>
 using namespace std;
+struct RVFunction;
 const int MAX_REG_FOR_FUNC_ARGU = 8;
 const int REG_ARGU[MAX_REG_FOR_FUNC_ARGU] = {10, 11, 12, 13, 14, 15, 16, 17};
 enum Register:int{
@@ -18,12 +19,15 @@ enum Register:int{
 //    return IRV2RVReg[IRV];
 //}
 class RegisterAllocator {
-    unordered_map<int, unordered_set<int>> interference_graph;
-    unordered_map<int, int> color_map;
-    unordered_set<int> spilledVars;
-    int num_regs;
+private:
+    RVFunction* func;
+    int now_treg = 0;
+    unordered_map<string,Register> IRV2Reg;
+    unordered_set<Register,string> Reg2IRV;
 public:
-    RegisterAllocator(int num_regs);
-
+    RegisterAllocator(RVFunction* func);
+    Register GetRegFromIRV(string IRV);
+    void FreeReg(Register reg);
+    Register AllocateReg();
 };
 #endif

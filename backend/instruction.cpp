@@ -1,5 +1,5 @@
 #include "instruction.h"
-#include "RVBlock.hpp"
+#include "RVBlock.h"
 
 using namespace std;
 
