@@ -595,7 +595,7 @@ void NodeVisit::visit(Type* type, VarDefNode* node) {
                 }
             }
 
-            if (node->initval != nullptr || static_cast<InitValNode*>(node->initval)->exp != nullptr) {
+            if (node->initval != nullptr && static_cast<InitValNode*>(node->initval)->exp != nullptr) {
                 std::cout << "error:array must be initialized with a brace-enclosed initializer " << name << std::endl;
                 std::exit(0);
             }
