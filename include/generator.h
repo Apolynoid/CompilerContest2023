@@ -55,6 +55,7 @@ private:
     int num_block;
     void GenerateFunctionCode();
     void GenerateGlobalVarCode();
+    void GenerateLibCode();
     void GenerateArrayCode(ConstArray* array, int& size);
     void CaculateUninitArraySize(ArrayType* array, int& size);
 public:
