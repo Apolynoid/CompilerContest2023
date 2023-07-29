@@ -22,6 +22,7 @@ public:
 
 class ArrayType : public Type {
 public:
+    int size;
     int num;
     Type* contained;
 

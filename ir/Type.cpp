@@ -21,6 +21,12 @@ std::string IntType::print() {
 ArrayType::ArrayType(Type* contained, int num) : Type(ARRAYTYPE){
     this->num = num;
     this->contained = contained;
+    this->size = this->num * 4;
+    Type* temp = this->contained;
+    while (dynamic_cast<ArrayType*>(temp)) {
+        this->size = this->size * static_cast<ArrayType*>(temp)->num;
+        temp = static_cast<ArrayType*>(temp)->contained;
+    }
 }
 
 std::string ArrayType::print() {

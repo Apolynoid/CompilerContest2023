@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\include",
     "\\ir"
   ],
-  "SelectedNode": "\\ir\\NodeVisit.cpp",
+  "SelectedNode": "\\ir\\Type.cpp",
   "PreviewInSolutionExplorer": false
 }
