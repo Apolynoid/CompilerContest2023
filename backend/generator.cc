@@ -54,6 +54,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
         start = new RVBlock(IRfunc->name + "_start");
         blocks.emplace_back(start);
         if(IRfunc->basic_blocks.size()==0) {
+            
             return;
         }
         for(auto bb: IRfunc->basic_blocks){
@@ -367,6 +368,46 @@ void Generator::GenerateRisc_V(){
     }
     GenerateFunctionCode();
     GenerateGlobalVarCode();
+    GenerateLibCode();
+}
+void Generator::GenerateLibCode(){
+    for(auto func:module->func_list){
+        if(func->name=="__aeabi_memclr4"){
+            targetCode.push_back("  .global __aeabi_memclr4");
+            targetCode.push_back("  .type __aeabi_memclr4, @function");
+            targetCode.push_back("__aeabi_memclr4:");
+            targetCode.push_back("__aeabi_memclr4_loop:");
+            targetCode.push_back("  sw zero, 0(a0)");
+            targetCode.push_back("  addi a0, a0, 4");
+            targetCode.push_back("  addi a1, a1, -4");
+            targetCode.push_back("  bnez a1, __aeabi_memclr4_loop");
+            targetCode.push_back("  ret\n");
+        }
+        else if(func->name=="__aeabi_memcpy4"){
+            targetCode.push_back("  .global __aeabi_memcpy4");
+            targetCode.push_back("  .type __aeabi_memcpy4, @function");
+            targetCode.push_back("__aeabi_memcpy4:");
+            targetCode.push_back("__aeabi_memcpy4_loop:");
+            targetCode.push_back("  lw a3, 0(a1)");
+            targetCode.push_back("  sw a3, 0(a0)");
+            targetCode.push_back("  addi a0, a0, 4");
+            targetCode.push_back("  addi a1, a1, 4");
+            targetCode.push_back("  addi a2, a2, -4");
+            targetCode.push_back("  bnez a2, __aeabi_memcpy4_loop");
+            targetCode.push_back("  ret\n");
+        }
+        else if(func->name=="__aeabi_memset4"){
+            targetCode.push_back("  .global __aeabi_memset4");
+            targetCode.push_back("  .type __aeabi_memset4, @function");
+            targetCode.push_back("__aeabi_memset4:");
+            targetCode.push_back("__aeabi_memset4_loop:");
+            targetCode.push_back("  sw a1, 0(a0)");
+            targetCode.push_back("  addi a0, a0, 4");
+            targetCode.push_back("  addi a2, a2, -4");
+            targetCode.push_back("  bnez a2, __aeabi_memset4_loop");
+            targetCode.push_back("  ret\n");
+        }
+    }
 }
 void Generator::GenerateFunctionCode() {
     for(auto func: module->func_list) {
