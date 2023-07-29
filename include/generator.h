@@ -29,6 +29,8 @@ private:
     vector<unique_ptr<RVBlock>> blocks;
     vector<Register> argu_regs;
     unordered_map<string,StackObj*> name2stackobj;
+    unordered_map<StackObj*, std::string> stackobj2name;
+    std::unordered_map<Register,StackObj*> reg2stack;
     int stack_size;
 
 public:
@@ -41,6 +43,8 @@ public:
         }
     }
     RVFunction(string name, Function* IRfunc,Generator* gene);
+    void pushIfSave(Register reg,int i);
+    void pop(int i);
 };
 class Generator {
 private:

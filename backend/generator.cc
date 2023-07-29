@@ -8,8 +8,10 @@
 #include <unordered_set>
 
 // std::unordered_map<std::string, StackObj*> name2stackobj;
-std::unordered_map<StackObj*, std::string> stackobj2name;
+
 std::unordered_set<std::string> global_var;
+
+const unordered_set<Register> SavedRegisters = {s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10,s11};
 int now_sp;
 class RegisterAllocator;
 
@@ -31,7 +33,21 @@ BrInstrType CMP2Br(CMP_Type type) {
             return BrInstrType::Unknown;
     }
 }
-
+void RVFunction::pushIfSave(Register reg,int i){
+    if(SavedRegisters.find(reg)!=SavedRegisters.end()){
+        StackObj* new_obj = new StackObj(now_sp , 4);
+        now_sp -= 4;
+        stack_size += 4;
+        reg2stack[reg] = new_obj;
+        blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
+        blocks[i]->addInstruction(make_unique<StoreInstr>(sp, reg,0));
+    }
+}
+void RVFunction::pop(int i){
+    for(auto it = reg2stack.begin();it!=reg2stack.end();it++){
+        blocks[i]->addInstruction(make_unique<loadAddr>(it->first,sp,it->second->offset-now_sp-it->second->size));
+    }
+}
 RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name){
      //   name2stackobj.clear();
         RegisterAllocator* reg_alloc = new RegisterAllocator(this);
@@ -49,7 +65,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
         int argcnt = IRfunc->args.size();
 
         for(int i = 0;i < argcnt;i++) {
-            Register new_reg = Register(REG_ARGU[i]);
+            Register new_reg = reg_alloc->GetRegForFuncArgu(i);
             if(i>=MAX_REG_FOR_FUNC_ARGU) 
                 // todo 分配到堆栈
                 std::cerr<<"too many args\n"<<endl;
@@ -92,7 +108,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             Register new_reg;
                             if(src.substr(0,4)=="arg_"){
                                 int x = src[4]-'0';
-                                new_reg = Register(REG_ARGU[x]);
+                                new_reg = reg_alloc->GetRegForFuncArgu(x);
                                 auto tar  = ins->opes[1]->name;
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
@@ -104,17 +120,17 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             }
                             else if(dynamic_cast<Const*>(ins->opes[0])){
                                 int value = static_cast<ConstNumber*>(instr->opes[0])->value;
-                                new_reg = reg_alloc->AllocateReg();
+                                new_reg = reg_alloc->GetImmReg();
                                 auto tar  = ins->opes[1]->name;
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
                                     blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
                                     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, s_obj->offset-now_sp-s_obj->size));
-                                    reg_alloc->FreeReg(new_reg);
                                 }
                                 else{
                                     if(global_var.find(tar)!=global_var.end()){
                                         Register new_reg2 = reg_alloc->GetRegFromIRV(tar);
+                                        pushIfSave(new_reg2,i);
                                         blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, tar));
                                         blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
                                         blocks[i]->addInstruction(make_unique<StoreInstr>(new_reg2, new_reg,0));
@@ -123,6 +139,14 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             }
                             else{
                                 new_reg = reg_alloc->GetRegFromIRV(src);
+                                if(SavedRegisters.find(new_reg)!=SavedRegisters.end()){
+                                    StackObj* new_obj = new StackObj(now_sp , 4);
+                                    now_sp -= 4;
+                                    stack_size += 4;
+                                    reg2stack[new_reg] = new_obj;
+                                    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg,0));
+                                }
                                 auto tar  = ins->opes[1]->name;
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
@@ -132,6 +156,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 else{
                                     if(global_var.find(tar)!=global_var.end()){
                                         Register new_reg2 = reg_alloc->GetRegFromIRV(tar);
+                                        pushIfSave(new_reg2,i);
                                         blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, tar));
                                         blocks[i]->addInstruction(make_unique<StoreInstr>(new_reg2, new_reg,0));
                                     }
@@ -144,11 +169,13 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             string dest = ins->name;
                             string src = ins->opes[0]->name;
                             Register new_reg = reg_alloc->GetRegFromIRV(dest);
+                            pushIfSave(new_reg,i);
                             if(name2stackobj.find(src)!=name2stackobj.end()){
                                 auto s_obj = name2stackobj[src];
                                 blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, sp, s_obj->offset-now_sp-s_obj->size));
                             }else if(global_var.find(src)!=global_var.end()){
                                 Register new_reg2 = reg_alloc->GetRegFromIRV(src);
+                                pushIfSave(new_reg2,i);
                                 blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, src));
                                 blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, new_reg2, 0));
                             }
@@ -213,7 +240,9 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 }
                             }
                             new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                            pushIfSave(new_cmp.r1,i);
                             new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                            pushIfSave(new_cmp.r2,i);
                             gene->cmp_context[instr->name] = new_cmp;
                             // todo 比较指令，应该压入一条什么？可能已经做完了
                             break;
@@ -232,24 +261,29 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                         case Xor:{
                             auto ins = static_cast<BinaryInst*>(instr);
                             Register rd = reg_alloc->GetRegFromIRV(instr->name);
+                            pushIfSave(rd,i);
                             bool is_rri = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr||dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
                             if(is_rri) {
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                                    pushIfSave(r1,i);
                                     RIInstrType op_id = static_cast<RIInstrType>(ins->op_id);
                                     blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r1, imm));
                                     break;
                                 }else if(dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[1])->value;
                                     Register r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                                    pushIfSave(r0,i);
                                     RIInstrType op_id = static_cast<RIInstrType>(ins->op_id);
                                     blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r0, imm));
                                     break;
                                 }
                             }
                             Register r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                            pushIfSave(r0,i);
                             Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                            pushIfSave(r1,i);
                             RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
                             blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r0, r1));
                             break;
@@ -257,12 +291,14 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                         case Sub:{
                             auto ins = static_cast<BinaryInst*>(instr);
                             Register rd = reg_alloc->GetRegFromIRV(instr->name);
+                            pushIfSave(rd,i);
                             bool is_rr = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
                             if(!is_rr){
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     imm=-imm;
                                     Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                                    pushIfSave(r1,i);
                                     RIInstrType op_id = RIInstrType::Addi;
                                     blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r1, -imm));
                                     break;
@@ -271,6 +307,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     int imm = static_cast<ConstNumber*>(instr->opes[1])->value;
                                     imm=-imm;
                                     Register r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                                    pushIfSave(r0,i);
                                     RIInstrType op_id = RIInstrType::Addi;
                                     blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r0, imm));
                                     break;
@@ -283,7 +320,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             auto ins = static_cast<CallInst*>(instr);
                             if(ins->opes.size()<=MAX_REG_FOR_FUNC_ARGU){
                                 for(int j=0;j<ins->opes.size()-1;j++) {
-                                    Register new_reg=Register(REG_ARGU[j]);
+                                    Register new_reg=reg_alloc->GetRegForFuncArgu(j);
                                 //    Register new_reg2=reg_alloc->GetRegFromIRV(ins->opes[i]->name);
                                     blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, reg_alloc->GetRegFromIRV(ins->opes[j]->name)));
                                 }
@@ -305,6 +342,8 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 // todo succ
                             }else{
                                 auto new_reg = reg_alloc->GetRegFromIRV(ins->opes[0]->name);
+                                pushIfSave(new_reg,i);
+                                pop(i);
                                 blocks[i]->addInstruction(make_unique<MoveInstr>(a0, new_reg));
                                 blocks[i]->addInstruction(make_unique<RetInstr>());
                             }
