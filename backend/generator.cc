@@ -84,6 +84,38 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                 auto IRBlock = RVB2IRB[blocks[i].get()];
                 for(auto &instr: IRBlock->instr_list) {
                     switch(instr->op_id) {
+                        case GetElementPtr: {
+                            auto instr_gep = dynamic_cast<GetElementPtrInst*>(instr);
+                            if(name2stackobj.find(instr_gep->opes[0]->name)!=name2stackobj.end()) {
+                                auto sobj = name2stackobj[instr_gep->opes[0]->name];
+                                name2stackobj[instr_gep->name] = sobj;
+                                Register newreg = reg_alloc->GetRegFromIRV(instr_gep->name);
+                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
+                                int index = 0;
+                                for(int i=1;i<instr_gep->opes.size();i++) {
+                                    int value = static_cast<ConstNumber*>(instr_gep->opes[i])->value;
+                                    
+                                }
+                            }
+                            break;
+                        }
+                        case BitCast: {
+                            auto instr_cast = dynamic_cast<CastInst*>(instr);
+                            if(name2stackobj.find(instr_cast->opes[0]->name)!=name2stackobj.end()) {
+                                auto sobj = name2stackobj[instr_cast->opes[0]->name];
+                                name2stackobj[instr_cast->name] = sobj;
+                                auto newreg = reg_alloc->GetRegFromIRV(instr_cast->name);
+                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
+                              //  blocks[i]->addInstruction(make_unique<MvInstr>(newreg, ));
+                            }
+                            else {
+                                std::cerr<<"Get a bitcast from a non-stackobj\n";
+                                exit(0);
+                             //   name2stackobj[instr_cast->name] = name2stackobj[instr_cast->opes[0]->name];
+                             //   stackobj2name[name2stackobj[instr_cast->opes[0]->name]] = instr_cast->name;
+                            }
+                            break;
+                        }
                         case Alloca: {
                             // todo
                             if(auto t = dynamic_cast<PType*>(instr->type)) {
@@ -99,8 +131,17 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                               //  blocks[i]->addInstruction(make_unique<LiInstr>(GetRegFromIRV(instr->name), ));
                             ///    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, , ));
                                 }
+                                else if (auto tt = dynamic_cast<ArrayType*>(contained)) {
+                                    int size = tt->size;
+                                    StackObj* new_obj = new StackObj(now_sp , size);
+                                    now_sp -= size;
+                                    stack_size += size;
+                                    name2stackobj[instr->name] = new_obj;
+                                    stackobj2name[new_obj] = instr->name;
+                                    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -size));
+                                }
                             }
-                            break;   
+                            break; 
                         }
                         case Store: {
                             auto ins = dynamic_cast<StoreInst*>(instr);
