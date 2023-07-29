@@ -386,24 +386,31 @@ void Generator::GenerateFunctionCode() {
     }
 }
 
-void Generator::GenerateArrayCode(ConstArray* array){
+void Generator::GenerateArrayCode(ConstArray* array, int& global_size){
     for(int i=0;i<array->carr.size();i++){
+        if(array->carr[i] == nullptr) {
+            targetCode.push_back("  .word 0");
+            continue;
+        }
         if(array->carr[i]->type->type_id==ARRAYTYPE){
-            GenerateArrayCode(static_cast<ConstArray*>(array->carr[i]));
+            GenerateArrayCode(static_cast<ConstArray*>(array->carr[i]),global_size);
         }
         else{
             switch (array->carr[i]->type->type_id) {
                 case INTTYPE:{
                     switch (static_cast<IntType*>(array->carr[i]->type)->bits) {
                         case 1:{
+                            global_size += 1;
                             targetCode.push_back("  .byte "+std::to_string((int)static_cast<ConstNumber*>(array->carr[i])->value));
                             break;
                         }
                         case 8:{
+                            global_size += 1;
                             targetCode.push_back("  .byte "+std::to_string((int)static_cast<ConstNumber*>(array->carr[i])->value));
                             break;
                         }
                         case 32:{
+                            global_size += 4;
                             targetCode.push_back("  .word "+std::to_string((int)static_cast<ConstNumber*>(array->carr[i])->value));
                             break;
                         }
@@ -411,6 +418,7 @@ void Generator::GenerateArrayCode(ConstArray* array){
                     break;
                 }
                 case FLOATTYPE:{
+                    global_size += 4;
                     targetCode.push_back("  .float "+std::to_string(static_cast<ConstNumber*>(array->carr[i])->value));
                     break;
                 }
@@ -418,6 +426,37 @@ void Generator::GenerateArrayCode(ConstArray* array){
     }
     }
 }
+
+
+void Generator::CaculateUninitArraySize(ArrayType* array, int &size) {
+    auto sub = dynamic_cast<ArrayType*>(array->contained);
+    size*=array->num;
+    if(sub==nullptr) {
+        if(auto x = dynamic_cast<IntType*>(array->contained)){
+            switch (x->bits) {
+                case 1:{
+                    size*=1;
+                    break;
+                }
+                case 8:{
+                    size*=1;
+                    break;
+                }
+                case 32:{
+                    size*=4;
+                    break;
+                }
+            }
+        } 
+        //else if(auto x = dynamic_cast<FloatType*>(array->contained)){
+         //   size*=4;
+       // }
+    } else {
+      //  size*=array->num;
+        CaculateUninitArraySize(sub,size);
+    }
+}
+
 
 void Generator::GenerateGlobalVarCode() {
     if(module->global_list.size()>0){
@@ -453,7 +492,16 @@ void Generator::GenerateGlobalVarCode() {
                 break;
             }
             case ARRAYTYPE:{
-                GenerateArrayCode(static_cast<ConstArray*>(global_value->value));
+                if(dynamic_cast<ConstZero*>(global_value->value)){
+                    int size = 1;
+                    CaculateUninitArraySize(static_cast<ArrayType*>(static_cast<PType*>(global_value->type)->contained),size);
+                    targetCode.push_back("  .zero "+std::to_string(size));
+                    targetCode.push_back("  .size "+global_value->name+", "+std::to_string(size));
+                    break;
+                }
+                int size = 0;
+                GenerateArrayCode(static_cast<ConstArray*>(global_value->value), size);
+                targetCode.push_back("  .size "+global_value->name+", "+std::to_string(size));
                 break;
             }
         }    

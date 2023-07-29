@@ -343,7 +343,7 @@ ConstZero::ConstZero(Type* type) : Const(type, "") {
 }
 
 std::string ConstZero::print() {
-    return "Zero";
+    return "zeroinitializer";
 }
 
 Function* Module::get_main() {

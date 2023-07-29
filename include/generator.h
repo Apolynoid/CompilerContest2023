@@ -55,7 +55,8 @@ private:
     int num_block;
     void GenerateFunctionCode();
     void GenerateGlobalVarCode();
-    void GenerateArrayCode(ConstArray* array);
+    void GenerateArrayCode(ConstArray* array, int& size);
+    void CaculateUninitArraySize(ArrayType* array, int& size);
 public:
     Generator(Module *module): module(module) {};
     void GenerateRisc_V();
