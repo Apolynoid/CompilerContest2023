@@ -595,16 +595,12 @@ void NodeVisit::visit(Type* type, VarDefNode* node) {
                 }
             }
 
-            if (node->initval == nullptr) {
-                std::cout << "error:uninitialized const " << name << std::endl;
-                std::exit(0);
-            }
-            if (static_cast<InitValNode*>(node->initval)->exp != nullptr) {
+            if (node->initval != nullptr || static_cast<InitValNode*>(node->initval)->exp != nullptr) {
                 std::cout << "error:array must be initialized with a brace-enclosed initializer " << name << std::endl;
                 std::exit(0);
             }
             //语法分析问题， 无法识别数组大括号初始化，例：const int a[10] = {};（待修改）
-            if (static_cast<InitValNode*>(node->initval)->initvals == nullptr) {
+            if (node->initval == nullptr || static_cast<InitValNode*>(node->initval)->initvals == nullptr) {
                 this->Sym[tag_]->symbol.insert({ name, new GlobalVar(name, module, arrType[0], false, new ConstZero(arrType[0])) });
             }
             else {
