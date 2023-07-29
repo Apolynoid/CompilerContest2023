@@ -1,6 +1,6 @@
 .PHONY:main
 INCLUDES = -I ./include
-SRCS := ./parser.tab.cpp
+SRCS := ./parser.tab.c
 SRCS += ./nodes/Node.cpp
 SRCS += ./nodes/RootNode.cpp
 SRCS += ./nodes/CompUnitNode.cpp
@@ -49,6 +49,8 @@ SRCS += ./backend/register.cpp
 SRCS += main.cpp
 
 main:
+	flex --header-file=lex.yy.h -o lex.yy.cpp lexerer.l
+	bison --defines=parser.yab.h -o parser.yar.c parser.y
 	g++ -g -o main $(SRCS) $(INCLUDES)
 test.s:test.ll
 	llc -O0 --march=riscv64 -o test.s test.ll
