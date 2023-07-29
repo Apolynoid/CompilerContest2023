@@ -89,14 +89,75 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             auto instr_gep = dynamic_cast<GetElementPtrInst*>(instr);
                             if(name2stackobj.find(instr_gep->opes[0]->name)!=name2stackobj.end()) {
                                 auto sobj = name2stackobj[instr_gep->opes[0]->name];
-                                name2stackobj[instr_gep->name] = sobj;
-                                Register newreg = reg_alloc->GetRegFromIRV(instr_gep->name);
-                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
+                              //  name2stackobj[instr_gep->name] = sobj;
+                            //    Register newreg = reg_alloc->GetRegFromIRV(instr_gep->name);
+                              //  blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
                                 int index = 0;
+                                ArrayType* arr=new ArrayType(nullptr,-1);
+                                auto point = static_cast<PType*>(instr_gep->opes[0]->type);
+                                int size = 0;
                                 for(int i=1;i<instr_gep->opes.size();i++) {
+                                    if(i==1) {
+                                        // todo 
+                                        int value = static_cast<ConstNumber*>(instr_gep->opes[i])->value;
+                                        if(point->contained->type_id == INTTYPE) {
+                                            switch (static_cast<IntType*>(point->contained)->bits) {
+                                                case 1:
+                                                case 8:{
+                                                    size = 1;
+                                                    index = value*size*size;
+                                                    break;
+                                                }
+                                                case 32:{
+                                                    size = 4;
+                                                    index = value*size*size;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        else if(point->contained->type_id == FLOATTYPE) {
+                                            size = 4;
+                                            index = value*size*size;
+                                        }
+                                        else {
+                                            arr=static_cast<ArrayType*>(point->contained);
+                                            continue;
+                                        }
+                                        break;
+                                    }
                                     int value = static_cast<ConstNumber*>(instr_gep->opes[i])->value;
-                                    
+                                    index += value * arr->size/arr->num;
+                                    if(dynamic_cast<ArrayType*>(arr->contained)) {
+                                        arr = static_cast<ArrayType*>(arr->contained);
+                                        continue;
+                                    }
+                                    else {  
+                                        switch (arr->contained->type_id) {
+                                            case INTTYPE:{
+                                                switch (static_cast<IntType*>(arr->contained)->bits) {
+                                                     case 1:
+                                                     case 8:{
+                                                        size = 1;
+                                                         break;
+                                                     }
+                                                     case 32:{
+                                                        size = 4;
+                                                        
+                                                        break;
+                                                     }
+                                                 }
+                                                 break;
+                                             }
+                                             case FLOATTYPE:{
+                                                size = 4;
+                                                break;
+                                             }
+                                        }
+                                    }
                                 }
+                                index /=size;
+                                StackObj* new_obj = new StackObj(sobj->offset - index , size);
+                                name2stackobj[instr_gep->name] = new_obj;
                             }
                             break;
                         }
@@ -139,6 +200,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     stack_size += size;
                                     name2stackobj[instr->name] = new_obj;
                                     stackobj2name[new_obj] = instr->name;
+                                    // todo 数组初始化
                                     blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -size));
                                 }
                             }
@@ -363,8 +425,13 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             if(ins->opes.size()<=MAX_REG_FOR_FUNC_ARGU){
                                 for(int j=0;j<ins->opes.size()-1;j++) {
                                     Register new_reg=reg_alloc->GetRegForFuncArgu(j);
-                                //    Register new_reg2=reg_alloc->GetRegFromIRV(ins->opes[i]->name);
-                                    blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, reg_alloc->GetRegFromIRV(ins->opes[j]->name)));
+                                    if(dynamic_cast<ConstNumber*>(ins->opes[j])){
+                                        blocks[i]->addInstruction(make_unique<LiInstr>(new_reg,static_cast<ConstNumber*>(ins->opes[j])->value));
+                                    }
+                                    else{
+                                        Register new_reg2=reg_alloc->GetRegFromIRV(ins->opes[j]->name);
+                                        blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, reg_alloc->GetRegFromIRV(ins->opes[j]->name)));
+                                    }
                                 }
                                 blocks[i]->addInstruction(make_unique<CallInstr>(ins->opes[ins->opes.size()-1]->name));
 
@@ -374,7 +441,8 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 std::cerr<<"too many args\n"<<endl;
 
                             }
-                            blocks[i]->addInstruction(make_unique<MoveInstr>(reg_alloc->GetRegFromIRV(instr->name), a0));
+                            if(instr->name.size())
+                                blocks[i]->addInstruction(make_unique<MoveInstr>(reg_alloc->GetRegFromIRV(instr->name), a0));
                             break;
                         }
                         case Ret:{
