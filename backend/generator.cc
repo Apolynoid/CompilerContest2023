@@ -33,6 +33,29 @@ BrInstrType CMP2Br(CMP_Type type) {
             return BrInstrType::Unknown;
     }
 }
+void RVFunction::pushTemp(int i){
+    now_sp -= 24;
+    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -24));
+    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t0, 0));
+    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t1, 4));
+    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t2, 8));
+    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t3, 12));
+    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t4, 16));
+    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t5, 20));
+    return ;
+}
+void RVFunction::popTemp(int i){
+    now_sp += 24;
+    blocks[i]->addInstruction(make_unique<loadAddr>(t0, sp, 0));
+    blocks[i]->addInstruction(make_unique<loadAddr>(t1, sp, 4));
+    blocks[i]->addInstruction(make_unique<loadAddr>(t2, sp, 8));
+    blocks[i]->addInstruction(make_unique<loadAddr>(t3, sp, 12));
+    blocks[i]->addInstruction(make_unique<loadAddr>(t4, sp, 16));
+    blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, 20));
+    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 24));
+    return ;
+}
+
 void RVFunction::pushIfSave(Register reg,int i){
     if(SavedRegisters.find(reg)!=SavedRegisters.end()){
         StackObj* new_obj = new StackObj(now_sp , 4);
@@ -87,12 +110,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                     switch(instr->op_id) {
                         case GetElementPtr: {
                             auto instr_gep = dynamic_cast<GetElementPtrInst*>(instr);
-                            if(name2stackobj.find(instr_gep->opes[0]->name)!=name2stackobj.end()) {
-                                auto sobj = name2stackobj[instr_gep->opes[0]->name];
-                              //  name2stackobj[instr_gep->name] = sobj;
-                            //    Register newreg = reg_alloc->GetRegFromIRV(instr_gep->name);
-                              //  blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
-                                int index = 0;
+                             int index = 0;
                                 ArrayType* arr=new ArrayType(nullptr,-1);
                                 auto point = static_cast<PType*>(instr_gep->opes[0]->type);
                                 int size = 0;
@@ -155,9 +173,23 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                         }
                                     }
                                 }
+                            if(name2stackobj.find(instr_gep->opes[0]->name)!=name2stackobj.end()) {
+                                auto sobj = name2stackobj[instr_gep->opes[0]->name];
+                              //  name2stackobj[instr_gep->name] = sobj;
+                            //    Register newreg = reg_alloc->GetRegFromIRV(instr_gep->name);
+                              //  blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
+                               
                                // index /=size;
                                 StackObj* new_obj = new StackObj(sobj->offset - index , size);
                                 name2stackobj[instr_gep->name] = new_obj;
+                            } else {
+                                if(global_var.find(instr_gep->opes[0]->name)!=global_var.end()) {
+                                    auto new_reg = reg_alloc->GetRegFromIRV(instr_gep->name);
+                                    pushIfSave(new_reg,i);
+                                    blocks[i]->addInstruction(make_unique<LaInstr>(new_reg, instr_gep->opes[0]->name));
+                                    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, new_reg, new_reg, index));
+                                
+                                }
                             }
                             break;
                         }
@@ -283,6 +315,10 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 pushIfSave(new_reg2,i);
                                 blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, src));
                                 blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, new_reg2, 0));
+                            }else {
+                                auto new_reg2 = reg_alloc->GetRegFromIRV(src);
+                                pushIfSave(new_reg2,i);
+                                blocks[i]->addInstruction(make_unique<loadAddr>(new_reg, new_reg2 ,0));
                             }
                             break;
                         }
@@ -495,8 +531,9 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                         blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, reg_alloc->GetRegFromIRV(ins->opes[j]->name)));
                                     }
                                 }
+                                pushTemp(i);
                                 blocks[i]->addInstruction(make_unique<CallInstr>(ins->opes[ins->opes.size()-1]->name));
-
+                                popTemp(i);
                              //   blocks[i]->addInstruction(make_unique<CallInstr>(ins->opes[ins->opes.size()-2]->name));
                             } else{
                                 // todo 分配到堆栈

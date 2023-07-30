@@ -45,6 +45,8 @@ public:
     RVFunction(string name, Function* IRfunc,Generator* gene);
     void pushIfSave(Register reg,int i);
     void pop(int i);
+    void pushTemp(int i);
+    void popTemp(int i);
 };
 class Generator {
 private:
