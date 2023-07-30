@@ -50,7 +50,7 @@ SRCS += main.cpp
 
 main:
 	flex --header-file=lex.yy.h -o lex.yy.cpp lexerer.l
-	bison --defines=parser.yab.h -o parser.yar.c parser.y
+	bison -d parser.y
 	g++ -g -o compiler $(SRCS) $(INCLUDES)
 test.s:test.ll
 	llc -O0 --march=riscv64 -o test.s test.ll
