@@ -370,6 +370,57 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             bool is_rri = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr||dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
                             if(is_rri) {
                                 // todo
+                                if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
+                                    int imm1 = static_cast<ConstNumber*>(instr->opes[0])->value;
+                                    int imm2 = static_cast<ConstNumber*>(instr->opes[1])->value;
+                                    auto op_id = RRInstr::IR2RiscV(ins->op_id);
+                                    int finalval;
+                                    switch(op_id) {
+                                        case ADD:
+                                            finalval = imm1+imm2;
+                                            break;
+                                        case SUB:
+                                            finalval = imm1-imm2;
+                                            break;
+                                        case MUL:
+                                            finalval = imm1*imm2;
+                                            break;
+                                        case SDIV:
+                                            finalval = imm1/imm2;
+                                            break;
+                                        case SREM:
+                                            finalval = imm1%imm2;
+                                            break;
+                                        case UDIV:
+                                            finalval = (unsigned int)imm1/(unsigned int)imm2;
+                                            break;
+                                        case UREM:
+                                            finalval = (unsigned int)imm1%(unsigned int)imm2;
+                                            break;
+                                        case AND:
+                                            finalval = imm1&imm2;
+                                            break;
+                                        case OR:
+                                            finalval = imm1|imm2;
+                                            break;
+                                        case XOR:
+                                            finalval = imm1^imm2;
+                                            break;
+                                        case Sll:
+                                            finalval = imm1<<imm2;
+                                            break;
+                                        case Srl:
+                                            finalval = (unsigned int)imm1>>(unsigned int)imm2;
+                                            break;
+                                        case Sra:
+                                            finalval = imm1>>imm2;
+                                            break;
+                                    }
+                                    auto reg = reg_alloc->GetRegFromIRV(instr->name);
+                                    blocks[i]->addInstruction(make_unique<LiInstr>(reg, finalval));
+                                    pushIfSave(reg,i);
+                                    break;
+                                }
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
