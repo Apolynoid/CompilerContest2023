@@ -35,6 +35,7 @@ BrInstrType CMP2Br(CMP_Type type) {
 }
 void RVFunction::pushTemp(int i){
     now_sp -= 24;
+    stack_size += 24;
     blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -24));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t0, 0));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t1, 4));
@@ -46,6 +47,7 @@ void RVFunction::pushTemp(int i){
 }
 void RVFunction::popTemp(int i){
     now_sp += 24;
+    stack_size -= 24;
     blocks[i]->addInstruction(make_unique<loadAddr>(t0, sp, 0));
     blocks[i]->addInstruction(make_unique<loadAddr>(t1, sp, 4));
     blocks[i]->addInstruction(make_unique<loadAddr>(t2, sp, 8));
@@ -68,6 +70,8 @@ void RVFunction::pushIfSave(Register reg,int i){
 }
 void RVFunction::pop(int i){
     for(auto it = reg2stack.begin();it!=reg2stack.end();it++){
+        now_sp += 4;
+        stack_size -= 4;
         blocks[i]->addInstruction(make_unique<loadAddr>(it->first,sp,it->second->offset-now_sp-it->second->size));
     }
 }
