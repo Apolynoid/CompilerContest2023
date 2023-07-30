@@ -243,14 +243,15 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             }
                             else{
                                 new_reg = reg_alloc->GetRegFromIRV(src);
-                                if(SavedRegisters.find(new_reg)!=SavedRegisters.end()){
-                                    StackObj* new_obj = new StackObj(now_sp , 4);
-                                    now_sp -= 4;
-                                    stack_size += 4;
-                                    reg2stack[new_reg] = new_obj;
-                                    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
-                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg,0));
-                                }
+                                // if(SavedRegisters.find(new_reg)!=SavedRegisters.end()){
+                                //     StackObj* new_obj = new StackObj(now_sp , 4);
+                                //     now_sp -= 4;
+                                //     stack_size += 4;
+                                //     reg2stack[new_reg] = new_obj;
+                                //     blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
+                                //     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg,0));
+                                // }
+                                pushIfSave(new_reg, i);
                                 auto tar  = ins->opes[1]->name;
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
@@ -368,6 +369,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             pushIfSave(rd,i);
                             bool is_rri = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr||dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
                             if(is_rri) {
+                                // todo
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
@@ -396,8 +398,17 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             auto ins = static_cast<BinaryInst*>(instr);
                             Register rd = reg_alloc->GetRegFromIRV(instr->name);
                             pushIfSave(rd,i);
-                            bool is_rr = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
-                            if(!is_rr){
+                            bool is_rri = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr||dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
+                            if(is_rri){
+                                if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
+                                    int imm0 = static_cast<ConstNumber*>(instr->opes[0])->value;
+                                    int imm1 = static_cast<ConstNumber*>(instr->opes[1])->value;
+                                    int imm = imm0-imm1;
+                                    auto reg = reg_alloc->GetRegFromIRV(instr->name);
+                                    blocks[i]->addInstruction(make_unique<LiInstr>(reg, imm));
+                                    pushIfSave(reg,i);
+                                    break;
+                                }
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     imm=-imm;
