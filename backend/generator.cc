@@ -466,10 +466,11 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     break;
                                 }else if(dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[1])->value;
+                                    blocks[i]->addInstruction(make_unique<LiInstr>(t6, imm));
                                     Register r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
                                     pushIfSave(r0,i);
-                                    RIInstrType op_id = static_cast<RIInstrType>(ins->op_id);
-                                    blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r0, imm));
+                                    RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
+                                    blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r0, t6));
                                     break;
                                 }
                             }
@@ -565,10 +566,13 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
         }
 
     }
-void Generator::print(){
+string Generator::print(){
+    string s;
     for(auto line: targetCode){
-        std::cout<<line<<std::endl;
+        s+=line;
+        s+='\n';
     }
+    return s;
 }
 void Generator::GenerateRisc_V(){
     for(auto global_value: module->global_list) {
@@ -576,7 +580,7 @@ void Generator::GenerateRisc_V(){
     }
     GenerateFunctionCode();
     GenerateGlobalVarCode();
-    GenerateLibCode();
+    //GenerateLibCode();
 }
 void Generator::GenerateLibCode(){
     for(auto func:module->func_list){

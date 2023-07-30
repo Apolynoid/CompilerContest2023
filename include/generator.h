@@ -52,7 +52,7 @@ class Generator {
 private:
     Module *module;
     vector<unique_ptr<RVFunction>> functions;
-    vector<string> targetCode;
+ 
     unordered_map<string,CMP_Context> cmp_context;
     int num_block;
     void GenerateFunctionCode();
@@ -62,8 +62,9 @@ private:
     void CaculateUninitArraySize(ArrayType* array, int& size);
 public:
     Generator(Module *module): module(module) {};
+    vector<string> targetCode;
     void GenerateRisc_V();
-    void print();
+    string print();
     friend class RVFunction;
 };
 

@@ -3,7 +3,7 @@
 ConstDefsNode::ConstDefsNode(Node* constdef, Node* Next)
 {
     this->constdef = constdef;
-    this->next = next;
+    this->next = Next;
 }
 
 void ConstDefsNode::generateCode()

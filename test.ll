@@ -17,10 +17,13 @@ declare  void @llvm.memset.p0.i32(i32*, i8, i32, i1)
 define i32 @main(){
 label_entry:
   %v0 = alloca i32
-  %v1 = add i32 10, 5
-  store i32 %v1, i32* %v0
+  %v1 = alloca i32
+  store i32 10, i32* %v1
+  %v2 = load i32, i32* %v1
+  %v3 = sdiv i32 %v2, 3
+  store i32 %v3, i32* %v0
   br label %label_ret
 label_ret:
-  %v2 = load i32, i32* %v0
-  ret i32 %v2
+  %v4 = load i32, i32* %v0
+  ret i32 %v4
 }
