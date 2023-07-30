@@ -32,11 +32,8 @@ private:
     unordered_map<StackObj*, std::string> stackobj2name;
     std::unordered_map<Register,StackObj*> reg2stack;
     int stack_size = 0;
-<<<<<<< HEAD
-=======
     int sp_offset = 0;
 
->>>>>>> b06702cd30ca7c065c10666fee832889ccf19774
 
 public:
     void GenerateRiscv(stringstream &out){

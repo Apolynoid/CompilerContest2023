@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.8.2.  */
+/* A Bison parser, made by GNU Bison 3.7.5.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -46,10 +46,10 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output, and Bison version.  */
-#define YYBISON 30802
+#define YYBISON 30705
 
 /* Bison version string.  */
-#define YYBISON_VERSION "3.8.2"
+#define YYBISON_VERSION "3.7.5"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -354,18 +354,12 @@ typedef int yy_state_fast_t;
 # define YY_USE(E) /* empty */
 #endif
 
+#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
-# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
-#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
-    _Pragma ("GCC diagnostic push")                                     \
-    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
-# else
-#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
-# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -583,7 +577,7 @@ static const yytype_int8 yytranslate[] =
 };
 
 #if YYDEBUG
-/* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
        0,    48,    48,    49,    50,    51,    52,    53,    54,    55,
@@ -633,6 +627,19 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
+#ifdef YYPRINT
+/* YYTOKNUM[NUM] -- (External) token number corresponding to the
+   (internal) symbol number NUM (which must be that of a token).  */
+static const yytype_int16 yytoknum[] =
+{
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
+     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
+     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
+     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
+     295,   296,   297,   298
+};
+#endif
+
 #define YYPACT_NINF (-162)
 
 #define yypact_value_is_default(Yyn) \
@@ -643,8 +650,8 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 #define yytable_value_is_error(Yyn) \
   0
 
-/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-   STATE-NUM.  */
+  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+     STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
       76,    52,   -22,   -12,    -3,    56,  -162,    76,  -162,  -162,
@@ -669,9 +676,9 @@ static const yytype_int16 yypact[] =
       16,    16,  -162,   118,  -162
 };
 
-/* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-   Performed when YYTABLE does not specify something else to do.  Zero
-   means the default is an error.  */
+  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
+     Performed when YYTABLE does not specify something else to do.  Zero
+     means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
        0,     0,     0,     0,     0,     0,     2,     3,     7,     8,
@@ -696,7 +703,7 @@ static const yytype_int8 yydefact[] =
      100,   101,    86,     0,    85
 };
 
-/* YYPGOTO[NTERM-NUM].  */
+  /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
     -162,  -162,    30,   -80,  -162,     1,  -162,   -23,   120,   -16,
@@ -705,7 +712,7 @@ static const yytype_int16 yypgoto[] =
     -161,   119,  -162,    96,    94,   -49
 };
 
-/* YYDEFGOTO[NTERM-NUM].  */
+  /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_uint8 yydefgoto[] =
 {
        0,     5,     6,     7,     8,    23,    24,   102,   103,    29,
@@ -714,9 +721,9 @@ static const yytype_uint8 yydefgoto[] =
      131,   163,   164,   165,   166,   167
 };
 
-/* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-   positive, shift that token.  If negative, reduce the rule whose
-   number is the opposite.  If YYTABLE_NINF, syntax error.  */
+  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
+     positive, shift that token.  If negative, reduce the rule whose
+     number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
       48,    60,    17,    66,   127,    68,    36,   125,    61,    48,
@@ -781,8 +788,8 @@ static const yytype_int16 yycheck[] =
       -1,    41,    42,    43,    -1,    -1,    41,    42,    43
 };
 
-/* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
-   state STATE-NUM.  */
+  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
+     symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
        0,     3,    18,    19,    20,    45,    46,    47,    48,    63,
@@ -807,7 +814,7 @@ static const yytype_int8 yystos[] =
       55,    55,    74,    23,    74
 };
 
-/* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
+  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
        0,    44,    45,    46,    46,    46,    46,    47,    47,    48,
@@ -823,7 +830,7 @@ static const yytype_int8 yyr1[] =
       79,    79,    79,    79
 };
 
-/* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
+  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     1,     1,     2,     2,     1,     1,     4,
@@ -848,7 +855,6 @@ enum { YYENOMEM = -2 };
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
-#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
@@ -889,7 +895,10 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-
+/* This macro is provided for backward compatibility. */
+# ifndef YY_LOCATION_PRINT
+#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
+# endif
 
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
@@ -916,6 +925,10 @@ yy_symbol_value_print (FILE *yyo,
   YY_USE (yyoutput);
   if (!yyvaluep)
     return;
+# ifdef YYPRINT
+  if (yykind < YYNTOKENS)
+    YYPRINT (yyo, yytoknum[yykind], *yyvaluep);
+# endif
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
@@ -1100,7 +1113,6 @@ yyparse (void)
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yychar = YYEMPTY; /* Cause a token to be read.  */
-
   goto yysetstate;
 
 
@@ -1126,7 +1138,7 @@ yysetstate:
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    YYNOMEM;
+    goto yyexhaustedlab;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -1154,7 +1166,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        YYNOMEM;
+        goto yyexhaustedlab;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -1165,7 +1177,7 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          YYNOMEM;
+          goto yyexhaustedlab;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
@@ -1186,7 +1198,6 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
-
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -1302,617 +1313,617 @@ yyreduce:
   case 2: /* Root: CompUnit  */
 #line 48 "parser.y"
                {root = new RootNode((yyvsp[0].node_val));}
-#line 1306 "parser.tab.c"
+#line 1317 "parser.tab.c"
     break;
 
   case 3: /* CompUnit: Decl  */
 #line 49 "parser.y"
                {(yyval.node_val) = new CompUnitNode((yyvsp[0].node_val), nullptr, nullptr);}
-#line 1312 "parser.tab.c"
+#line 1323 "parser.tab.c"
     break;
 
   case 4: /* CompUnit: FuncDef  */
 #line 50 "parser.y"
                   {(yyval.node_val) = new CompUnitNode(nullptr, (yyvsp[0].node_val), nullptr);}
-#line 1318 "parser.tab.c"
+#line 1329 "parser.tab.c"
     break;
 
   case 5: /* CompUnit: Decl CompUnit  */
 #line 51 "parser.y"
                         {(yyval.node_val) = new CompUnitNode((yyvsp[-1].node_val), nullptr, (yyvsp[0].node_val));}
-#line 1324 "parser.tab.c"
+#line 1335 "parser.tab.c"
     break;
 
   case 6: /* CompUnit: FuncDef CompUnit  */
 #line 52 "parser.y"
                            {(yyval.node_val) = new CompUnitNode(nullptr, (yyvsp[-1].node_val), (yyvsp[0].node_val));}
-#line 1330 "parser.tab.c"
+#line 1341 "parser.tab.c"
     break;
 
   case 7: /* Decl: ConstDecl  */
 #line 53 "parser.y"
                 {(yyval.node_val) = new DeclNode((yyvsp[0].node_val), nullptr);}
-#line 1336 "parser.tab.c"
+#line 1347 "parser.tab.c"
     break;
 
   case 8: /* Decl: VarDecl  */
 #line 54 "parser.y"
               {(yyval.node_val) = new DeclNode(nullptr, (yyvsp[0].node_val));}
-#line 1342 "parser.tab.c"
+#line 1353 "parser.tab.c"
     break;
 
   case 9: /* ConstDecl: CONST INT ConstDefs SEMICOLON  */
 #line 55 "parser.y"
                                             {(yyval.node_val) = new ConstDeclNode((yyvsp[-1].node_val), INTTYPE);}
-#line 1348 "parser.tab.c"
+#line 1359 "parser.tab.c"
     break;
 
   case 10: /* ConstDecl: CONST FLOAT ConstDefs SEMICOLON  */
 #line 56 "parser.y"
                                               {(yyval.node_val) = new ConstDeclNode((yyvsp[-1].node_val), FLOATTYPE);}
-#line 1354 "parser.tab.c"
+#line 1365 "parser.tab.c"
     break;
 
   case 11: /* ConstDefs: ConstDef  */
 #line 57 "parser.y"
                        {(yyval.node_val) = new ConstDefsNode((yyvsp[0].node_val), nullptr);}
-#line 1360 "parser.tab.c"
+#line 1371 "parser.tab.c"
     break;
 
   case 12: /* ConstDefs: ConstDef COMMA ConstDefs  */
 #line 58 "parser.y"
                                        {(yyval.node_val) = new ConstDefsNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1366 "parser.tab.c"
+#line 1377 "parser.tab.c"
     break;
 
   case 13: /* ConstDef: ID ASSIGN ConstInitVal  */
 #line 59 "parser.y"
                                  {(yyval.node_val) = new ConstDefNode((yyvsp[-2].str_val), nullptr, (yyvsp[0].node_val));}
-#line 1372 "parser.tab.c"
+#line 1383 "parser.tab.c"
     break;
 
   case 14: /* ConstDef: ID ConstArrayList ASSIGN ConstInitVal  */
 #line 60 "parser.y"
                                                 {(yyval.node_val) = new ConstDefNode((yyvsp[-3].str_val), (yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1378 "parser.tab.c"
+#line 1389 "parser.tab.c"
     break;
 
   case 15: /* ConstInitVal: ConstExp  */
 #line 61 "parser.y"
                        {(yyval.node_val) = new ConstInitValNode((yyvsp[0].node_val), nullptr);}
-#line 1384 "parser.tab.c"
+#line 1395 "parser.tab.c"
     break;
 
   case 16: /* ConstInitVal: LC RC  */
 #line 62 "parser.y"
                     {(yyval.node_val) = new ConstInitValNode(nullptr, nullptr);}
-#line 1390 "parser.tab.c"
+#line 1401 "parser.tab.c"
     break;
 
   case 17: /* ConstInitVal: LC ConstInitVals RC  */
 #line 63 "parser.y"
                                   {(yyval.node_val) = new ConstInitValNode(nullptr, (yyvsp[-1].node_val));}
-#line 1396 "parser.tab.c"
+#line 1407 "parser.tab.c"
     break;
 
   case 18: /* ConstInitVals: ConstInitVal  */
 #line 64 "parser.y"
                                {(yyval.node_val) = new ConstInitValsNode((yyvsp[0].node_val), nullptr);}
-#line 1402 "parser.tab.c"
+#line 1413 "parser.tab.c"
     break;
 
   case 19: /* ConstInitVals: ConstInitVal COMMA ConstInitVals  */
 #line 65 "parser.y"
                                                    {(yyval.node_val) = new ConstInitValsNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1408 "parser.tab.c"
+#line 1419 "parser.tab.c"
     break;
 
   case 20: /* ConstArrayList: LB ConstExp RB  */
 #line 66 "parser.y"
                                  {(yyval.node_val) = new ConstArrayListNode((yyvsp[-1].node_val), nullptr);}
-#line 1414 "parser.tab.c"
+#line 1425 "parser.tab.c"
     break;
 
   case 21: /* ConstArrayList: LB ConstExp RB ConstArrayList  */
 #line 67 "parser.y"
                                                 {(yyval.node_val) = new ConstArrayListNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1420 "parser.tab.c"
+#line 1431 "parser.tab.c"
     break;
 
   case 22: /* ConstExp: AddExp  */
 #line 68 "parser.y"
                  {(yyval.node_val) = new ConstExpNode((yyvsp[0].node_val));}
-#line 1426 "parser.tab.c"
+#line 1437 "parser.tab.c"
     break;
 
   case 23: /* AddExp: MulExp  */
 #line 69 "parser.y"
                  {(yyval.node_val) = new AddExpNode(nullptr, NULLOP, (yyvsp[0].node_val));}
-#line 1432 "parser.tab.c"
+#line 1443 "parser.tab.c"
     break;
 
   case 24: /* AddExp: AddExp ADD MulExp  */
 #line 70 "parser.y"
                             {(yyval.node_val) = new AddExpNode((yyvsp[-2].node_val), ADDOP, (yyvsp[0].node_val));}
-#line 1438 "parser.tab.c"
+#line 1449 "parser.tab.c"
     break;
 
   case 25: /* AddExp: AddExp MINUS MulExp  */
 #line 71 "parser.y"
                               {(yyval.node_val) = new AddExpNode((yyvsp[-2].node_val), MINUSOP, (yyvsp[0].node_val));}
-#line 1444 "parser.tab.c"
+#line 1455 "parser.tab.c"
     break;
 
   case 26: /* MulExp: UnaryExp  */
 #line 72 "parser.y"
                    {(yyval.node_val) = new MulExpNode(nullptr, NULLOP, (yyvsp[0].node_val));}
-#line 1450 "parser.tab.c"
+#line 1461 "parser.tab.c"
     break;
 
   case 27: /* MulExp: MulExp MUL UnaryExp  */
 #line 73 "parser.y"
                               {(yyval.node_val) = new MulExpNode((yyvsp[-2].node_val), MULOP, (yyvsp[0].node_val));}
-#line 1456 "parser.tab.c"
+#line 1467 "parser.tab.c"
     break;
 
   case 28: /* MulExp: MulExp DIV UnaryExp  */
 #line 74 "parser.y"
                               {(yyval.node_val) = new MulExpNode((yyvsp[-2].node_val), DIVOP, (yyvsp[0].node_val));}
-#line 1462 "parser.tab.c"
+#line 1473 "parser.tab.c"
     break;
 
   case 29: /* MulExp: MulExp MOD UnaryExp  */
 #line 75 "parser.y"
                               {(yyval.node_val) = new MulExpNode((yyvsp[-2].node_val), MODOP, (yyvsp[0].node_val));}
-#line 1468 "parser.tab.c"
+#line 1479 "parser.tab.c"
     break;
 
   case 30: /* UnaryExp: PrimaryExp  */
 #line 76 "parser.y"
                      {(yyval.node_val) = new UnaryExpNode((yyvsp[0].node_val), "", nullptr, NULLOP, nullptr);}
-#line 1474 "parser.tab.c"
+#line 1485 "parser.tab.c"
     break;
 
   case 31: /* UnaryExp: ID LP RP  */
 #line 77 "parser.y"
                    {(yyval.node_val) = new UnaryExpNode(nullptr, (yyvsp[-2].str_val), nullptr, NULLOP, nullptr);}
-#line 1480 "parser.tab.c"
+#line 1491 "parser.tab.c"
     break;
 
   case 32: /* UnaryExp: ID LP FuncRParams RP  */
 #line 78 "parser.y"
                                {(yyval.node_val) = new UnaryExpNode(nullptr, (yyvsp[-3].str_val), (yyvsp[-1].node_val), NULLOP, nullptr);}
-#line 1486 "parser.tab.c"
+#line 1497 "parser.tab.c"
     break;
 
   case 33: /* UnaryExp: ADD UnaryExp  */
 #line 79 "parser.y"
                        {(yyval.node_val) = new UnaryExpNode(nullptr, "", nullptr, ADDOP, (yyvsp[0].node_val));}
-#line 1492 "parser.tab.c"
+#line 1503 "parser.tab.c"
     break;
 
   case 34: /* UnaryExp: MINUS UnaryExp  */
 #line 80 "parser.y"
                          {(yyval.node_val) = new UnaryExpNode(nullptr, "", nullptr, MINUSOP, (yyvsp[0].node_val));}
-#line 1498 "parser.tab.c"
+#line 1509 "parser.tab.c"
     break;
 
   case 35: /* UnaryExp: NOT UnaryExp  */
 #line 81 "parser.y"
                        {(yyval.node_val) = new UnaryExpNode(nullptr, "", nullptr, NOTOP, (yyvsp[0].node_val));}
-#line 1504 "parser.tab.c"
+#line 1515 "parser.tab.c"
     break;
 
   case 36: /* PrimaryExp: LP Exp RP  */
 #line 82 "parser.y"
                         {(yyval.node_val) = new PrimaryExpNode((yyvsp[-1].node_val), nullptr, 0, 0.0, VOIDTYPE);}
-#line 1510 "parser.tab.c"
+#line 1521 "parser.tab.c"
     break;
 
   case 37: /* PrimaryExp: LVal  */
 #line 83 "parser.y"
                    {(yyval.node_val) = new PrimaryExpNode(nullptr, (yyvsp[0].node_val), 0, 0.0, VOIDTYPE);}
-#line 1516 "parser.tab.c"
+#line 1527 "parser.tab.c"
     break;
 
   case 38: /* PrimaryExp: INT_LIT  */
 #line 84 "parser.y"
                       {(yyval.node_val) = new PrimaryExpNode(nullptr, nullptr, (yyvsp[0].int_val), 0.0, INTTYPE);}
-#line 1522 "parser.tab.c"
+#line 1533 "parser.tab.c"
     break;
 
   case 39: /* PrimaryExp: FLOAT_LIT  */
 #line 85 "parser.y"
                         {(yyval.node_val) = new PrimaryExpNode(nullptr, nullptr, 0, (yyvsp[0].float_val), FLOATTYPE);}
-#line 1528 "parser.tab.c"
+#line 1539 "parser.tab.c"
     break;
 
   case 40: /* FuncRParams: Exp  */
 #line 86 "parser.y"
                   {(yyval.node_val) = new FuncRParamsNode((yyvsp[0].node_val), nullptr);}
-#line 1534 "parser.tab.c"
+#line 1545 "parser.tab.c"
     break;
 
   case 41: /* FuncRParams: Exp COMMA FuncRParams  */
 #line 87 "parser.y"
                                     {(yyval.node_val) = new FuncRParamsNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1540 "parser.tab.c"
+#line 1551 "parser.tab.c"
     break;
 
   case 42: /* Exp: AddExp  */
 #line 88 "parser.y"
              {(yyval.node_val) = new ExpNode((yyvsp[0].node_val));}
-#line 1546 "parser.tab.c"
+#line 1557 "parser.tab.c"
     break;
 
   case 43: /* LVal: ID  */
 #line 89 "parser.y"
          {(yyval.node_val) = new LValNode((yyvsp[0].str_val), nullptr);}
-#line 1552 "parser.tab.c"
+#line 1563 "parser.tab.c"
     break;
 
   case 44: /* LVal: ID ArrayList  */
 #line 90 "parser.y"
                    {(yyval.node_val) = new LValNode((yyvsp[-1].str_val), (yyvsp[0].node_val));}
-#line 1558 "parser.tab.c"
+#line 1569 "parser.tab.c"
     break;
 
   case 45: /* ArrayList: LB Exp RB  */
 #line 91 "parser.y"
                         {(yyval.node_val) = new ArrayListNode((yyvsp[-1].node_val), nullptr);}
-#line 1564 "parser.tab.c"
+#line 1575 "parser.tab.c"
     break;
 
   case 46: /* ArrayList: LB Exp RB ArrayList  */
 #line 92 "parser.y"
                                   {(yyval.node_val) = new ArrayListNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1570 "parser.tab.c"
+#line 1581 "parser.tab.c"
     break;
 
   case 47: /* VarDecl: INT VarDefs SEMICOLON  */
 #line 93 "parser.y"
                                 {(yyval.node_val) = new VarDeclNode((yyvsp[-1].node_val), INTTYPE);}
-#line 1576 "parser.tab.c"
+#line 1587 "parser.tab.c"
     break;
 
   case 48: /* VarDecl: FLOAT VarDefs SEMICOLON  */
 #line 94 "parser.y"
                                   {(yyval.node_val) = new VarDeclNode((yyvsp[-1].node_val), FLOATTYPE);}
-#line 1582 "parser.tab.c"
+#line 1593 "parser.tab.c"
     break;
 
   case 49: /* VarDefs: VarDef  */
 #line 95 "parser.y"
                  {(yyval.node_val) = new VarDefsNode((yyvsp[0].node_val), nullptr);}
-#line 1588 "parser.tab.c"
+#line 1599 "parser.tab.c"
     break;
 
   case 50: /* VarDefs: VarDef COMMA VarDefs  */
 #line 96 "parser.y"
                                {(yyval.node_val) = new VarDefsNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1594 "parser.tab.c"
+#line 1605 "parser.tab.c"
     break;
 
   case 51: /* VarDef: ID  */
 #line 97 "parser.y"
              {(yyval.node_val) = new VarDefNode((yyvsp[0].str_val), nullptr, nullptr);}
-#line 1600 "parser.tab.c"
+#line 1611 "parser.tab.c"
     break;
 
   case 52: /* VarDef: ID ConstArrayList  */
 #line 98 "parser.y"
                             {(yyval.node_val) = new VarDefNode((yyvsp[-1].str_val), (yyvsp[0].node_val), nullptr);}
-#line 1606 "parser.tab.c"
+#line 1617 "parser.tab.c"
     break;
 
   case 53: /* VarDef: ID ASSIGN InitVal  */
 #line 99 "parser.y"
                             {(yyval.node_val) = new VarDefNode((yyvsp[-2].str_val), nullptr, (yyvsp[0].node_val));}
-#line 1612 "parser.tab.c"
+#line 1623 "parser.tab.c"
     break;
 
   case 54: /* VarDef: ID ConstArrayList ASSIGN InitVal  */
 #line 100 "parser.y"
                                            {(yyval.node_val) = new VarDefNode((yyvsp[-3].str_val), (yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1618 "parser.tab.c"
+#line 1629 "parser.tab.c"
     break;
 
   case 55: /* InitVal: Exp  */
 #line 101 "parser.y"
               {(yyval.node_val) = new InitValNode((yyvsp[0].node_val), nullptr);}
-#line 1624 "parser.tab.c"
+#line 1635 "parser.tab.c"
     break;
 
   case 56: /* InitVal: LC RC  */
 #line 102 "parser.y"
                 {(yyval.node_val) = new InitValNode(nullptr, nullptr);}
-#line 1630 "parser.tab.c"
+#line 1641 "parser.tab.c"
     break;
 
   case 57: /* InitVal: LC InitVals RC  */
 #line 103 "parser.y"
                          {(yyval.node_val) = new InitValNode(nullptr, (yyvsp[-1].node_val));}
-#line 1636 "parser.tab.c"
+#line 1647 "parser.tab.c"
     break;
 
   case 58: /* InitVals: InitVal  */
 #line 104 "parser.y"
                   {(yyval.node_val) = new InitValsNode((yyvsp[0].node_val), nullptr);}
-#line 1642 "parser.tab.c"
+#line 1653 "parser.tab.c"
     break;
 
   case 59: /* InitVals: InitVal COMMA InitVals  */
 #line 105 "parser.y"
                                  {(yyval.node_val) = new InitValsNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1648 "parser.tab.c"
+#line 1659 "parser.tab.c"
     break;
 
   case 60: /* FuncDef: VOID ID LP RP Block  */
 #line 106 "parser.y"
                               {(yyval.node_val) = new FuncDefNode(VOIDTYPE, (yyvsp[-3].str_val), nullptr, (yyvsp[0].node_val));}
-#line 1654 "parser.tab.c"
+#line 1665 "parser.tab.c"
     break;
 
   case 61: /* FuncDef: INT ID LP RP Block  */
 #line 107 "parser.y"
                              {(yyval.node_val) = new FuncDefNode(INTTYPE, (yyvsp[-3].str_val), nullptr, (yyvsp[0].node_val));}
-#line 1660 "parser.tab.c"
+#line 1671 "parser.tab.c"
     break;
 
   case 62: /* FuncDef: FLOAT ID LP RP Block  */
 #line 108 "parser.y"
                                {(yyval.node_val) = new FuncDefNode(FLOATTYPE, (yyvsp[-3].str_val), nullptr, (yyvsp[0].node_val));}
-#line 1666 "parser.tab.c"
+#line 1677 "parser.tab.c"
     break;
 
   case 63: /* FuncDef: VOID ID LP FuncFParams RP Block  */
 #line 109 "parser.y"
                                           {(yyval.node_val) = new FuncDefNode(VOIDTYPE, (yyvsp[-4].str_val), (yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1672 "parser.tab.c"
+#line 1683 "parser.tab.c"
     break;
 
   case 64: /* FuncDef: INT ID LP FuncFParams RP Block  */
 #line 110 "parser.y"
                                          {(yyval.node_val) = new FuncDefNode(INTTYPE, (yyvsp[-4].str_val), (yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1678 "parser.tab.c"
+#line 1689 "parser.tab.c"
     break;
 
   case 65: /* FuncDef: FLOAT ID LP FuncFParams RP Block  */
 #line 111 "parser.y"
                                            {(yyval.node_val) = new FuncDefNode(FLOATTYPE, (yyvsp[-4].str_val), (yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1684 "parser.tab.c"
+#line 1695 "parser.tab.c"
     break;
 
   case 66: /* FuncFParams: FuncFParam  */
 #line 112 "parser.y"
                          {(yyval.node_val) = new FuncFParamsNode((yyvsp[0].node_val), nullptr);}
-#line 1690 "parser.tab.c"
+#line 1701 "parser.tab.c"
     break;
 
   case 67: /* FuncFParams: FuncFParam COMMA FuncFParams  */
 #line 113 "parser.y"
                                            {(yyval.node_val) = new FuncFParamsNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1696 "parser.tab.c"
+#line 1707 "parser.tab.c"
     break;
 
   case 68: /* FuncFParam: INT ID  */
 #line 114 "parser.y"
                      {(yyval.node_val) = new FuncFParamNode(INTTYPE, (yyvsp[0].str_val), nullptr, false);}
-#line 1702 "parser.tab.c"
+#line 1713 "parser.tab.c"
     break;
 
   case 69: /* FuncFParam: FLOAT ID  */
 #line 115 "parser.y"
                        {(yyval.node_val) = new FuncFParamNode(FLOATTYPE, (yyvsp[0].str_val), nullptr, false);}
-#line 1708 "parser.tab.c"
+#line 1719 "parser.tab.c"
     break;
 
   case 70: /* FuncFParam: INT ID LB RB  */
 #line 116 "parser.y"
                            {(yyval.node_val) = new FuncFParamNode(INTTYPE, (yyvsp[-2].str_val), nullptr, true);}
-#line 1714 "parser.tab.c"
+#line 1725 "parser.tab.c"
     break;
 
   case 71: /* FuncFParam: FLOAT ID LB RB  */
 #line 117 "parser.y"
                              {(yyval.node_val) = new FuncFParamNode(FLOATTYPE, (yyvsp[-2].str_val), nullptr, true);}
-#line 1720 "parser.tab.c"
+#line 1731 "parser.tab.c"
     break;
 
   case 72: /* FuncFParam: INT ID LB RB ArrayList  */
 #line 118 "parser.y"
                                      {(yyval.node_val) = new FuncFParamNode(INTTYPE, (yyvsp[-3].str_val), (yyvsp[0].node_val), true);}
-#line 1726 "parser.tab.c"
+#line 1737 "parser.tab.c"
     break;
 
   case 73: /* FuncFParam: FLOAT ID LB RB ArrayList  */
 #line 119 "parser.y"
                                        {(yyval.node_val) = new FuncFParamNode(FLOATTYPE, (yyvsp[-3].str_val), (yyvsp[0].node_val), true);}
-#line 1732 "parser.tab.c"
+#line 1743 "parser.tab.c"
     break;
 
   case 74: /* Block: LC RC  */
 #line 120 "parser.y"
                 {(yyval.node_val) = new BlockNode(nullptr);}
-#line 1738 "parser.tab.c"
+#line 1749 "parser.tab.c"
     break;
 
   case 75: /* Block: LC BlockItems RC  */
 #line 121 "parser.y"
                            {(yyval.node_val) = new BlockNode((yyvsp[-1].node_val));}
-#line 1744 "parser.tab.c"
+#line 1755 "parser.tab.c"
     break;
 
   case 76: /* BlockItems: BlockItem  */
 #line 122 "parser.y"
                         {(yyval.node_val) = new BlockItemsNode((yyvsp[0].node_val), nullptr);}
-#line 1750 "parser.tab.c"
+#line 1761 "parser.tab.c"
     break;
 
   case 77: /* BlockItems: BlockItem BlockItems  */
 #line 123 "parser.y"
                                    {(yyval.node_val) = new BlockItemsNode((yyvsp[-1].node_val), (yyvsp[0].node_val));}
-#line 1756 "parser.tab.c"
+#line 1767 "parser.tab.c"
     break;
 
   case 78: /* BlockItem: Decl  */
 #line 124 "parser.y"
                    {(yyval.node_val) = new BlockItemNode((yyvsp[0].node_val), nullptr);}
-#line 1762 "parser.tab.c"
+#line 1773 "parser.tab.c"
     break;
 
   case 79: /* BlockItem: Stmt  */
 #line 125 "parser.y"
                    {(yyval.node_val) = new BlockItemNode(nullptr, (yyvsp[0].node_val));}
-#line 1768 "parser.tab.c"
+#line 1779 "parser.tab.c"
     break;
 
   case 80: /* Stmt: LVal ASSIGN Exp SEMICOLON  */
 #line 126 "parser.y"
                                 {(yyval.node_val) = new StmtNode((yyvsp[-3].node_val), (yyvsp[-1].node_val), nullptr, nullptr, nullptr, nullptr, ASSIGNSTMT);}
-#line 1774 "parser.tab.c"
+#line 1785 "parser.tab.c"
     break;
 
   case 81: /* Stmt: SEMICOLON  */
 #line 127 "parser.y"
                 {(yyval.node_val) = new StmtNode(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, NULLSTMT);}
-#line 1780 "parser.tab.c"
+#line 1791 "parser.tab.c"
     break;
 
   case 82: /* Stmt: Exp SEMICOLON  */
 #line 128 "parser.y"
                    {(yyval.node_val) = new StmtNode(nullptr, (yyvsp[-1].node_val), nullptr, nullptr, nullptr, nullptr, EXPSTMT);}
-#line 1786 "parser.tab.c"
+#line 1797 "parser.tab.c"
     break;
 
   case 83: /* Stmt: Block  */
 #line 129 "parser.y"
             {(yyval.node_val) = new StmtNode(nullptr, nullptr, (yyvsp[0].node_val), nullptr, nullptr, nullptr, BLOCKSTMT);}
-#line 1792 "parser.tab.c"
+#line 1803 "parser.tab.c"
     break;
 
   case 84: /* Stmt: IF LP Cond RP Stmt  */
 #line 130 "parser.y"
                                     {(yyval.node_val) = new StmtNode(nullptr, nullptr, nullptr, (yyvsp[-2].node_val), (yyvsp[0].node_val), nullptr, IFSTMT);}
-#line 1798 "parser.tab.c"
+#line 1809 "parser.tab.c"
     break;
 
   case 85: /* Stmt: IF LP Cond RP Stmt ELSE Stmt  */
 #line 131 "parser.y"
                                    {(yyval.node_val) = new StmtNode(nullptr, nullptr, nullptr, (yyvsp[-4].node_val), (yyvsp[-2].node_val), (yyvsp[0].node_val), IFSTMT);}
-#line 1804 "parser.tab.c"
+#line 1815 "parser.tab.c"
     break;
 
   case 86: /* Stmt: WHILE LP Cond RP Stmt  */
 #line 132 "parser.y"
                             {(yyval.node_val) = new StmtNode(nullptr, nullptr, nullptr, (yyvsp[-2].node_val), (yyvsp[0].node_val), nullptr, WHILESTMT);}
-#line 1810 "parser.tab.c"
+#line 1821 "parser.tab.c"
     break;
 
   case 87: /* Stmt: BREAK SEMICOLON  */
 #line 133 "parser.y"
                       {(yyval.node_val) = new StmtNode(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, BREAKSTMT);}
-#line 1816 "parser.tab.c"
+#line 1827 "parser.tab.c"
     break;
 
   case 88: /* Stmt: CONTINUE SEMICOLON  */
 #line 134 "parser.y"
                          {(yyval.node_val) = new StmtNode(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, CONTSTMT);}
-#line 1822 "parser.tab.c"
+#line 1833 "parser.tab.c"
     break;
 
   case 89: /* Stmt: RETURN SEMICOLON  */
 #line 135 "parser.y"
                        {(yyval.node_val) = new StmtNode(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, RETURNSTMT);}
-#line 1828 "parser.tab.c"
+#line 1839 "parser.tab.c"
     break;
 
   case 90: /* Stmt: RETURN Exp SEMICOLON  */
 #line 136 "parser.y"
                            {(yyval.node_val) = new StmtNode(nullptr, (yyvsp[-1].node_val), nullptr, nullptr, nullptr, nullptr, RETURNSTMT);}
-#line 1834 "parser.tab.c"
+#line 1845 "parser.tab.c"
     break;
 
   case 91: /* Cond: LOrExp  */
 #line 137 "parser.y"
              {(yyval.node_val) = new CondNode((yyvsp[0].node_val));}
-#line 1840 "parser.tab.c"
+#line 1851 "parser.tab.c"
     break;
 
   case 92: /* LOrExp: LAndExp  */
 #line 138 "parser.y"
                   {(yyval.node_val) = new LOrExpNode(nullptr, (yyvsp[0].node_val));}
-#line 1846 "parser.tab.c"
+#line 1857 "parser.tab.c"
     break;
 
   case 93: /* LOrExp: LOrExp OR LAndExp  */
 #line 139 "parser.y"
                             {(yyval.node_val) = new LOrExpNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1852 "parser.tab.c"
+#line 1863 "parser.tab.c"
     break;
 
   case 94: /* LAndExp: EqExp  */
 #line 140 "parser.y"
                 {(yyval.node_val) = new LAndExpNode(nullptr, (yyvsp[0].node_val));}
-#line 1858 "parser.tab.c"
+#line 1869 "parser.tab.c"
     break;
 
   case 95: /* LAndExp: LAndExp AND EqExp  */
 #line 141 "parser.y"
                             {(yyval.node_val) = new LAndExpNode((yyvsp[-2].node_val), (yyvsp[0].node_val));}
-#line 1864 "parser.tab.c"
+#line 1875 "parser.tab.c"
     break;
 
   case 96: /* EqExp: RelExp  */
 #line 142 "parser.y"
                  {(yyval.node_val) = new EqExpNode(nullptr, NULLOP, (yyvsp[0].node_val));}
-#line 1870 "parser.tab.c"
+#line 1881 "parser.tab.c"
     break;
 
   case 97: /* EqExp: EqExp EQ RelExp  */
 #line 143 "parser.y"
                           {(yyval.node_val) = new EqExpNode((yyvsp[-2].node_val), EQOP, (yyvsp[0].node_val));}
-#line 1876 "parser.tab.c"
+#line 1887 "parser.tab.c"
     break;
 
   case 98: /* EqExp: EqExp NE RelExp  */
 #line 144 "parser.y"
                           {(yyval.node_val) = new EqExpNode((yyvsp[-2].node_val), NEOP, (yyvsp[0].node_val));}
-#line 1882 "parser.tab.c"
+#line 1893 "parser.tab.c"
     break;
 
   case 99: /* RelExp: AddExp  */
 #line 145 "parser.y"
                  {(yyval.node_val) = new RelExpNode(nullptr, NULLOP, (yyvsp[0].node_val));}
-#line 1888 "parser.tab.c"
+#line 1899 "parser.tab.c"
     break;
 
   case 100: /* RelExp: RelExp GT AddExp  */
 #line 146 "parser.y"
                            {(yyval.node_val) = new RelExpNode((yyvsp[-2].node_val), GTOP, (yyvsp[0].node_val));}
-#line 1894 "parser.tab.c"
+#line 1905 "parser.tab.c"
     break;
 
   case 101: /* RelExp: RelExp GE AddExp  */
 #line 147 "parser.y"
                            {(yyval.node_val) = new RelExpNode((yyvsp[-2].node_val), GEOP, (yyvsp[0].node_val));}
-#line 1900 "parser.tab.c"
+#line 1911 "parser.tab.c"
     break;
 
   case 102: /* RelExp: RelExp LT AddExp  */
 #line 148 "parser.y"
                            {(yyval.node_val) = new RelExpNode((yyvsp[-2].node_val), LTOP, (yyvsp[0].node_val));}
-#line 1906 "parser.tab.c"
+#line 1917 "parser.tab.c"
     break;
 
   case 103: /* RelExp: RelExp LE AddExp  */
 #line 149 "parser.y"
                            {(yyval.node_val) = new RelExpNode((yyvsp[-2].node_val), LEOP, (yyvsp[0].node_val));}
-#line 1912 "parser.tab.c"
+#line 1923 "parser.tab.c"
     break;
 
 
-#line 1916 "parser.tab.c"
+#line 1927 "parser.tab.c"
 
       default: break;
     }
@@ -1994,7 +2005,6 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
-  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -2055,7 +2065,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturnlab;
+  goto yyreturn;
 
 
 /*-----------------------------------.
@@ -2063,22 +2073,24 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturnlab;
+  goto yyreturn;
 
 
-/*-----------------------------------------------------------.
-| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
-`-----------------------------------------------------------*/
+#if !defined yyoverflow
+/*-------------------------------------------------.
+| yyexhaustedlab -- memory exhaustion comes here.  |
+`-------------------------------------------------*/
 yyexhaustedlab:
   yyerror (YY_("memory exhausted"));
   yyresult = 2;
-  goto yyreturnlab;
+  goto yyreturn;
+#endif
 
 
-/*----------------------------------------------------------.
-| yyreturnlab -- parsing is finished, clean up and return.  |
-`----------------------------------------------------------*/
-yyreturnlab:
+/*-------------------------------------------------------.
+| yyreturn -- parsing is finished, clean up and return.  |
+`-------------------------------------------------------*/
+yyreturn:
   if (yychar != YYEMPTY)
     {
       /* Make sure we have latest lookahead translation.  See comments at
