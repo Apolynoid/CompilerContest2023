@@ -64,6 +64,7 @@ void RVFunction::pushIfSave(Register reg,int i){
         now_sp -= 4;
         stack_size += 4;
         reg2stack[reg] = new_obj;
+        
         blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
         blocks[i]->addInstruction(make_unique<StoreInstr>(sp, reg,0));
     }
@@ -73,6 +74,7 @@ void RVFunction::pop(int i){
         now_sp += 4;
         stack_size -= 4;
         blocks[i]->addInstruction(make_unique<loadAddr>(it->first,sp,it->second->offset-now_sp-it->second->size));
+        blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 4));
     }
 }
 RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name){
@@ -595,6 +597,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                         }
                         case Ret:{
                             auto ins = static_cast<ReturnInst*>(instr);
+                            blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, stack_size));
                             if(ins->opes.size()==0){
                                 blocks[i]->addInstruction(make_unique<RetInstr>());
                                 // todo succ
