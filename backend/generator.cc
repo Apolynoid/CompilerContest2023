@@ -105,19 +105,19 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                                 case 1:
                                                 case 8:{
                                                     size = 1;
-                                                    index = value*size*size;
+                                                    index = value*size;
                                                     break;
                                                 }
                                                 case 32:{
                                                     size = 4;
-                                                    index = value*size*size;
+                                                    index = value*size;
                                                     break;
                                                 }
                                             }
                                         }
                                         else if(point->contained->type_id == FLOATTYPE) {
                                             size = 4;
-                                            index = value*size*size;
+                                            index = value*size;
                                         }
                                         else {
                                             arr=static_cast<ArrayType*>(point->contained);
@@ -155,7 +155,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                         }
                                     }
                                 }
-                                index /=size;
+                               // index /=size;
                                 StackObj* new_obj = new StackObj(sobj->offset - index , size);
                                 name2stackobj[instr_gep->name] = new_obj;
                             }
