@@ -632,7 +632,7 @@ void Generator::GenerateRisc_V(){
     }
     GenerateFunctionCode();
     GenerateGlobalVarCode();
-    //GenerateLibCode();
+    GenerateLibCode();
 }
 void Generator::GenerateLibCode(){
     for(auto func:module->func_list){

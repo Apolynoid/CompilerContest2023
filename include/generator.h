@@ -31,7 +31,7 @@ private:
     unordered_map<string,StackObj*> name2stackobj;
     unordered_map<StackObj*, std::string> stackobj2name;
     std::unordered_map<Register,StackObj*> reg2stack;
-    int stack_size;
+    int stack_size = 0;
 
 public:
     void GenerateRiscv(stringstream &out){
