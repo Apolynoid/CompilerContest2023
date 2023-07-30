@@ -12,7 +12,7 @@
 std::unordered_set<std::string> global_var;
 
 const unordered_set<Register> SavedRegisters = {s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10,s11};
-int now_sp;
+int now_sp=0;//指向当前函数栈底相对于全局栈底的位置
 class RegisterAllocator;
 
 BrInstrType CMP2Br(CMP_Type type) {
@@ -34,9 +34,7 @@ BrInstrType CMP2Br(CMP_Type type) {
     }
 }
 void RVFunction::pushTemp(int i){
-    now_sp -= 24;
-    stack_size += 24;
-    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -24));
+    AllocStack(24,i);
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t0, 0));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t1, 4));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t2, 8));
@@ -46,35 +44,43 @@ void RVFunction::pushTemp(int i){
     return ;
 }
 void RVFunction::popTemp(int i){
-    now_sp += 24;
-    stack_size -= 24;
     blocks[i]->addInstruction(make_unique<loadAddr>(t0, sp, 0));
     blocks[i]->addInstruction(make_unique<loadAddr>(t1, sp, 4));
     blocks[i]->addInstruction(make_unique<loadAddr>(t2, sp, 8));
     blocks[i]->addInstruction(make_unique<loadAddr>(t3, sp, 12));
     blocks[i]->addInstruction(make_unique<loadAddr>(t4, sp, 16));
     blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, 20));
-    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 24));
+    FreeStack(24,i);
     return ;
 }
 
 void RVFunction::pushIfSave(Register reg,int i){
     if(SavedRegisters.find(reg)!=SavedRegisters.end()){
-        StackObj* new_obj = new StackObj(now_sp , 4);
-        now_sp -= 4;
-        stack_size += 4;
+        AllocStack(4,i);
+        StackObj* new_obj = new StackObj(sp_offset , 4);
         reg2stack[reg] = new_obj;
-        
-        blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
-        blocks[i]->addInstruction(make_unique<StoreInstr>(sp, reg,0));
+        blocks[i]->addInstruction(make_unique<StoreInstr>(sp, reg,stack_size-sp_offset));
     }
 }
 void RVFunction::pop(int i){
     for(auto it = reg2stack.begin();it!=reg2stack.end();it++){
-        now_sp += 4;
-        stack_size -= 4;
-        blocks[i]->addInstruction(make_unique<loadAddr>(it->first,sp,it->second->offset-now_sp-it->second->size));
-        blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 4));
+        blocks[i]->addInstruction(make_unique<loadAddr>(it->first, sp, stack_size-it->second->offset));
+        FreeStack(4,i);
+    }
+}
+
+void RVFunction::AllocStack(int size,int i){
+    sp_offset += size;
+    if(sp_offset>=stack_size){
+        blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -32));
+        stack_size +=32;
+    }
+}
+void RVFunction::FreeStack(int size,int i){
+    sp_offset -= size;
+    if(stack_size-sp_offset>32){
+        blocks[0]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 32));
+        stack_size -=32;
     }
 }
 RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name){
@@ -104,12 +110,14 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
 
         RVBlock* real_start = IRB2RVB[IRfunc->basic_blocks[0]]; // todo 0号块真是入口块吗？
         if(blocks[0].get() != real_start) { // todo 应该一定不一样吧
+            start->addInstruction(make_unique<RIInstr>(Addi,sp, sp, -32));
+            stack_size += 32;
+            sp_offset = 0;
             start->addInstruction(make_unique<JmpInstr>(real_start));
         }
         start->succ.insert(real_start);
         real_start->prev.insert(start);
         for(int i = 0;i<blocks.size();i++) {
-
             if(blocks[i].get()!=start) {
                 auto IRBlock = RVB2IRB[blocks[i].get()];
                 for(auto &instr: IRBlock->instr_list) {
@@ -205,7 +213,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 auto sobj = name2stackobj[instr_cast->opes[0]->name];
                                 name2stackobj[instr_cast->name] = sobj;
                                 auto newreg = reg_alloc->GetRegFromIRV(instr_cast->name);
-                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
+                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, stack_size-sobj->offset));
                               //  blocks[i]->addInstruction(make_unique<MvInstr>(newreg, ));
                             }
                             else {
@@ -222,24 +230,20 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 Type *contained = t->contained;
                                 if(auto tt = dynamic_cast<IntType*>(contained)) {
                                     int size = tt->bits/8;
-                                    StackObj* new_obj = new StackObj(now_sp , size);
-                                    now_sp -= size;
-                                    stack_size += size;
+                                    AllocStack(size,i);
+                                    StackObj* new_obj = new StackObj(sp_offset , size);
                                     name2stackobj[instr->name] = new_obj;
                                     stackobj2name[new_obj] = instr->name;
-                                    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -size));
                               //  blocks[i]->addInstruction(make_unique<LiInstr>(GetRegFromIRV(instr->name), ));
                             ///    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, , ));
                                 }
                                 else if (auto tt = dynamic_cast<ArrayType*>(contained)) {
                                     int size = tt->size;
-                                    StackObj* new_obj = new StackObj(now_sp , size);
-                                    now_sp -= size;
-                                    stack_size += size;
+                                    AllocStack(size,i);
+                                    StackObj* new_obj = new StackObj(sp_offset , size);
                                     name2stackobj[instr->name] = new_obj;
                                     stackobj2name[new_obj] = instr->name;
                                     // todo 数组初始化
-                                    blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -size));
                                 }
                             }
                             break; 
@@ -255,7 +259,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
                                     //blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
-                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, s_obj->offset-now_sp-s_obj->size));
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, stack_size-s_obj->offset));
                                 }else{
                                     
                                 }
@@ -267,7 +271,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
                                     blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
-                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, s_obj->offset-now_sp-s_obj->size));
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, stack_size-s_obj->offset));
                                 }
                                 else{
                                     if(global_var.find(tar)!=global_var.end()){
@@ -281,20 +285,12 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             }
                             else{
                                 new_reg = reg_alloc->GetRegFromIRV(src);
-                                // if(SavedRegisters.find(new_reg)!=SavedRegisters.end()){
-                                //     StackObj* new_obj = new StackObj(now_sp , 4);
-                                //     now_sp -= 4;
-                                //     stack_size += 4;
-                                //     reg2stack[new_reg] = new_obj;
-                                //     blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
-                                //     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg,0));
-                                // }
                                 pushIfSave(new_reg, i);
                                 auto tar  = ins->opes[1]->name;
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
                                     //blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
-                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, s_obj->offset-now_sp-s_obj->size));
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, stack_size-s_obj->offset));
                                 }
                                 else{
                                     if(global_var.find(tar)!=global_var.end()){
@@ -315,7 +311,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             pushIfSave(new_reg,i);
                             if(name2stackobj.find(src)!=name2stackobj.end()){
                                 auto s_obj = name2stackobj[src];
-                                blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, sp, s_obj->offset-now_sp-s_obj->size));
+                                blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, sp, stack_size-s_obj->offset));
                             }else if(global_var.find(src)!=global_var.end()){
                                 Register new_reg2 = reg_alloc->GetRegFromIRV(src);
                                 pushIfSave(new_reg2,i);
@@ -579,7 +575,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     }
                                     else{
                                         Register new_reg2=reg_alloc->GetRegFromIRV(ins->opes[j]->name);
-                                        blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, reg_alloc->GetRegFromIRV(ins->opes[j]->name)));
+                                        blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, new_reg2));
                                     }
                                 }
                                 pushTemp(i);
@@ -615,7 +611,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                 }
             }
         }
-        now_sp+=stack_size;
+        //now_sp+=stack_size;
 
     }
 string Generator::print(){

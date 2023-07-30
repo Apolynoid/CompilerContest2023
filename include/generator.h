@@ -32,12 +32,17 @@ private:
     unordered_map<StackObj*, std::string> stackobj2name;
     std::unordered_map<Register,StackObj*> reg2stack;
     int stack_size = 0;
+<<<<<<< HEAD
+=======
+    int sp_offset = 0;
+
+>>>>>>> b06702cd30ca7c065c10666fee832889ccf19774
 
 public:
     void GenerateRiscv(stringstream &out){
         out<<name<<":\n";
        // start->GenerateRiscv(out);
-        for(int i = 1;i<blocks.size();i++){
+        for(int i = 0;i<blocks.size();i++){
             out<<blocks[i]->name<<":\n";
             blocks[i]->GenerateRiscv(out);
         }
@@ -47,6 +52,8 @@ public:
     void pop(int i);
     void pushTemp(int i);
     void popTemp(int i);
+    void AllocStack(int size,int i);
+    void FreeStack(int size,int i);
 };
 class Generator {
 private:
