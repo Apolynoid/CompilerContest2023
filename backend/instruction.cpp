@@ -20,5 +20,25 @@ void JmpInstr::GeneratorRiscvCode(stringstream &out){
 }
 
 void BrInstr::GeneratorRiscvCode(stringstream &out){
-    out<<'\t'<<"beq\t"<<rs1<<", "<<rs2<<", "<<target->name<<'\n';
+    switch (type) {
+        case BrInstrType::Beq:
+            out<<'\t'<<"beq\t";
+            break;
+        case BrInstrType::Bne:
+            out<<'\t'<<"bne\t";
+            break;
+        case BrInstrType::Blt:
+            out<<'\t'<<"blt\t";
+            break;
+        case BrInstrType::Bge:
+            out<<'\t'<<"bge\t";
+            break;
+        case BrInstrType::Ble:
+            out<<'\t'<<"ble\t";
+            break;
+        case BrInstrType::Bgt:
+            out<<'\t'<<"bgt\t";
+            break;
+    }
+    out<<rs1<<", "<<rs2<<", "<<target->name<<'\n';
 }

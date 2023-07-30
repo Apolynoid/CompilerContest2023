@@ -35,6 +35,7 @@ BrInstrType CMP2Br(CMP_Type type) {
 }
 void RVFunction::pushTemp(int i){
     now_sp -= 24;
+    stack_size += 24;
     blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -24));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t0, 0));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t1, 4));
@@ -46,6 +47,7 @@ void RVFunction::pushTemp(int i){
 }
 void RVFunction::popTemp(int i){
     now_sp += 24;
+    stack_size -= 24;
     blocks[i]->addInstruction(make_unique<loadAddr>(t0, sp, 0));
     blocks[i]->addInstruction(make_unique<loadAddr>(t1, sp, 4));
     blocks[i]->addInstruction(make_unique<loadAddr>(t2, sp, 8));
@@ -68,6 +70,8 @@ void RVFunction::pushIfSave(Register reg,int i){
 }
 void RVFunction::pop(int i){
     for(auto it = reg2stack.begin();it!=reg2stack.end();it++){
+        now_sp += 4;
+        stack_size -= 4;
         blocks[i]->addInstruction(make_unique<loadAddr>(it->first,sp,it->second->offset-now_sp-it->second->size));
     }
 }
@@ -330,10 +334,10 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 jmp_target->prev.insert(blocks[i].get());
                             }else{ // 有条件跳转
                                 CMP_Context cond;
-                                RVBlock* true_target = IRB2RVB[IRBlock->succ_bbs[0]];
-                                RVBlock* false_target = IRB2RVB[IRBlock->succ_bbs[1]];
-                                if(gene->cmp_context.find(IRBlock->succ_bbs[1]->name)!=gene->cmp_context.end()){
-                                    cond = gene->cmp_context[IRBlock->succ_bbs[1]->name];
+                                RVBlock* true_target = IRB2RVB[static_cast<BasicBlock*>(instr->opes[1])];
+                                RVBlock* false_target = IRB2RVB[static_cast<BasicBlock*>(instr->opes[2])];
+                                if(gene->cmp_context.find(instr->opes[0]->name)!=gene->cmp_context.end()){
+                                    cond = gene->cmp_context[instr->opes[0]->name];
                                 }else{ // todo
                                     std::cerr<<"cmp context not found\n"<<endl;
                                 }
@@ -380,10 +384,53 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     break;
                                 }
                             }
-                            new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
-                            pushIfSave(new_cmp.r1,i);
-                            new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
-                            pushIfSave(new_cmp.r2,i);
+                            if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr){
+                                int result = false;
+                                auto op1 = dynamic_cast<ConstNumber*>(instr->opes[0])->value;
+                                auto op2 = dynamic_cast<ConstNumber*>(instr->opes[1])->value;
+                                switch (new_cmp.type) {
+                                case CMP_Type::eq:
+                                    /* code */
+                                    result = op1==op2;
+                                    break;
+                                case CMP_Type::ne:
+                                    result = op1!=op2;
+                                    break;
+                                case CMP_Type::sgt:
+                                    result = op1>op2;
+                                    break;
+                                case CMP_Type::sge:
+                                    result = op1>=op2;
+                                    break;
+                                case CMP_Type::slt:
+                                    result = op1<op2;
+                                    break;
+                                case CMP_Type::sle:
+                                    result = op1<=op2;
+                                    break;
+                                default:
+                                    break;
+                                }
+                                blocks[i]->addInstruction(make_unique<LiInstr>(t6, result));
+                                new_cmp.r1 = t6;
+                                new_cmp.r2 = zero;
+                                new_cmp.type = CMP_Type::ne;
+                            } else if(dynamic_cast<ConstNumber*>(instr->opes[0])==nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])==nullptr) {
+                                new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                                pushIfSave(new_cmp.r1,i);
+                                new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                                pushIfSave(new_cmp.r2,i);
+                            } else if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
+                                blocks[i]->addInstruction(make_unique<LiInstr>(t6, dynamic_cast<ConstNumber*>(instr->opes[0])->value));
+                                new_cmp.r1 = t6;
+                                new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                                pushIfSave(new_cmp.r2,i);
+                            } else {
+                                blocks[i]->addInstruction(make_unique<LiInstr>(t6, dynamic_cast<ConstNumber*>(instr->opes[1])->value));
+                                new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                                pushIfSave(new_cmp.r1,i);
+                                new_cmp.r2 = t6;
+                            }
                             gene->cmp_context[instr->name] = new_cmp;
                             // todo 比较指令，应该压入一条什么？可能已经做完了
                             break;
@@ -459,10 +506,11 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 }
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
+                                    blocks[i]->addInstruction(make_unique<LiInstr>(t6, imm));
                                     Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
                                     pushIfSave(r1,i);
-                                    RIInstrType op_id = static_cast<RIInstrType>(ins->op_id);
-                                    blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r1, imm));
+                                    RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
+                                    blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r1, t6));
                                     break;
                                 }else if(dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[1])->value;
@@ -557,13 +605,14 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 blocks[i]->addInstruction(make_unique<MoveInstr>(a0, new_reg));
                                 blocks[i]->addInstruction(make_unique<RetInstr>());
                             }
-                            now_sp+=stack_size;
+                        //    now_sp+=stack_size;
                             break;
                         }
                     }
                 }
             }
         }
+        now_sp+=stack_size;
 
     }
 string Generator::print(){

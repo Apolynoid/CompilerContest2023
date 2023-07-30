@@ -371,7 +371,7 @@ Base* NodeVisit::visit(UnaryExpNode* node, bool is_const) {
     }else{
         if(node->unaryexp != nullptr){
             Base* now_value = this->visit(static_cast<UnaryExpNode*>(node->unaryexp), is_const);
-            if (now_value->type == voidType) {
+            if (now_value->type == voidType || node->optype == ADDOP) {
                 return now_value;
             }
             if(now_value->type == intType1){
