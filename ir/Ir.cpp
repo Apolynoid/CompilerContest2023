@@ -510,6 +510,15 @@ AllocaInst::AllocaInst(Type* type, BasicBlock* bb) : Instr(get_ptype(type), Allo
 
 std::string AllocaInst::print() {
     this->parent->parent->allocas.insert({ this->name, this });
+    if (dynamic_cast<ArrayType*>(this->alloc_type)) {
+        this->parent->parent->allocas_num.insert({ this->name, static_cast<ArrayType*>(this->alloc_type)->size});
+    }
+    else if (this->alloc_type == intType1 || this->alloc_type == intType8) {
+        this->parent->parent->allocas_num.insert({ this->name, 1});
+    }
+    else if (this->alloc_type == intType32 || this->alloc_type == floatType) {
+        this->parent->parent->allocas_num.insert({ this->name, 4});
+    }
     std::string temp = "%" + this->name + " = " + instr_sign[this->op_id] + " " + this->alloc_type->print();
     return temp;
 }

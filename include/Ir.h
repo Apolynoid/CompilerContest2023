@@ -58,6 +58,7 @@ public:
     std::vector<BasicBlock*> basic_blocks;
     std::vector<Arg*> args;
     std::map<std::string, Base*> allocas;
+    std::map<std::string, int> allocas_num;
     Module* parent;
     int label_cnt;
     int v_count;
