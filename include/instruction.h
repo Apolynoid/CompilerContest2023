@@ -162,6 +162,42 @@ public:
     }
 };
 
+class ldInstr: public instruction {
+private:
+    Register rd, rs1;
+    int imm;
+public:
+    ldInstr(Register rd, Register rs1, int imm) : rd(rd), rs1(rs1), imm(imm) {
+    };
+    vector<Register> getUseRegs()override {
+        return {rs1};
+    }
+    vector<Register> getDefRegs()override {
+        return {rd};
+    }
+    void GeneratorRiscvCode(stringstream &out) override{
+        out<<'\t'<<"ld\t"<<rd<<", "<<imm<<"("<<rs1<<')'<<'\n';
+    }
+};
+
+class sdInstr : public instruction {
+private:
+    Register rs1, rs2;
+    int imm;
+public:
+    sdInstr(Register rs1, Register rs2, int imm) : rs1(rs1), rs2(rs2), imm(imm) {
+    };
+    vector<Register> getUseRegs()override {
+        return {rs1, rs2};
+    }
+    vector<Register> getDefRegs()override {
+        return {};
+    }
+    void GeneratorRiscvCode(stringstream &out) override{
+        out<<'\t'<<"sd\t"<<rs2<<", "<<imm<<"("<<rs1<<')'<<'\n';
+    }
+};
+
 class StoreInstr : public instruction {
 private:
     Register rs1, rs2;

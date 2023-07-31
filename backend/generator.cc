@@ -35,11 +35,12 @@ BrInstrType CMP2Br(CMP_Type type) {
     }
 }
 void RVFunction::pushTemp(int i){
-    AllocStack(16,i);
+    AllocStack(32,i);
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t0, 0));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t1, 4));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t2, 8));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t3, 12));
+    blocks[i]->addInstruction(make_unique<sdInstr>(sp, ra, 16));
     return ;
 }
 void RVFunction::popTemp(int i){
@@ -47,7 +48,8 @@ void RVFunction::popTemp(int i){
     blocks[i]->addInstruction(make_unique<loadAddr>(t1, sp, 4));
     blocks[i]->addInstruction(make_unique<loadAddr>(t2, sp, 8));
     blocks[i]->addInstruction(make_unique<loadAddr>(t3, sp, 12));
-    FreeStack(16,i);
+    blocks[i]->addInstruction(make_unique<ldInstr>(ra, sp, 16));
+    FreeStack(32,i);
     return ;
 }
 
@@ -200,7 +202,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 }
                             if(name2stackobj.find(instr_gep->opes[0]->name)!=name2stackobj.end()) {
                                 auto sobj = name2stackobj[instr_gep->opes[0]->name];
-                                StackObj* new_obj = new StackObj(sobj->offset - index , size);
+                                StackObj* new_obj = new StackObj(sobj->offset + index , size);
                                 name2stackobj[instr_gep->name] = new_obj;
                             } else {
                                 if(global_var.find(instr_gep->opes[0]->name)!=global_var.end()) {
@@ -218,8 +220,15 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             if(name2stackobj.find(instr_cast->opes[0]->name)!=name2stackobj.end()) {
                                 auto sobj = name2stackobj[instr_cast->opes[0]->name];
                                 name2stackobj[instr_cast->name] = sobj;
-                                auto newreg = reg_alloc->GetRegFromIRV(instr_cast->name);
-                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, stack_size-sobj->offset));
+				Register new_reg;
+				if(name2stackobj.find(instr_cast->name)!=name2stackobj.end()){
+					new_reg = t6;
+				}
+				else
+                                	new_reg = reg_alloc->GetRegFromIRV(instr_cast->name);
+                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, new_reg, sp, stack_size-sobj->offset));
+				if(name2stackobj.find(instr_cast->name)!=name2stackobj.end())
+					blocks[i]->addInstruction(make_unique<StoreInstr>(sp,new_reg,stack_size-name2stackobj[instr_cast->name]->offset));
                               //  blocks[i]->addInstruction(make_unique<MvInstr>(newreg, ));
                             }
                             else {
@@ -704,13 +713,13 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                         blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, new_reg2));
                                     }
                                 }
-				blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
-				blocks[i]->addInstruction(make_unique<StoreInstr>(sp, ra, 0));
+				//blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
+				//blocks[i]->addInstruction(make_unique<StoreInstr>(sp, ra, 0));
                                 pushTemp(i);
                                 blocks[i]->addInstruction(make_unique<CallInstr>(ins->opes[ins->opes.size()-1]->name));
                                 popTemp(i);
-				blocks[i]->addInstruction(make_unique<loadAddr>(ra, sp, 0));
-				blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 4));
+				//blocks[i]->addInstruction(make_unique<loadAddr>(ra, sp, 0));
+				//blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 4));
                              //   blocks[i]->addInstruction(make_unique<CallInstr>(ins->opes[ins->opes.size()-2]->name));
                             } else{
                                 // todo 分配到堆栈
@@ -771,7 +780,7 @@ void Generator::GenerateRisc_V(){
     }
     GenerateFunctionCode();
     GenerateGlobalVarCode();
-    //GenerateLibCode();
+    GenerateLibCode();
 }
 void Generator::GenerateLibCode(){
     for(auto func:module->func_list){
