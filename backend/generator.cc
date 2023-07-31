@@ -68,10 +68,11 @@ void RVFunction::pushIfSave(Register reg,int i){
 void RVFunction::pop(int i){
     for(auto it = reg2stack.begin();it!=reg2stack.end();it++){
         blocks[i]->addInstruction(make_unique<loadAddr>(it->first, sp, stack_size-it->second->offset));
-        reg2stack.erase(it);
         PushedRegisters.erase(it->first);
-        FreeStack(4,i);
+       // reg2stack.erase(it);
+	FreeStack(4,i);
     }
+    reg2stack.clear();
 }
 
 void RVFunction::AllocStack(int size,int i){
@@ -751,10 +752,12 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 }
                                 else 
                                     new_reg = reg_alloc->GetRegFromIRV(ins->opes[0]->name);
-                                pop(i);
+                                // pop(i);
                                 blocks[i]->addInstruction(make_unique<MoveInstr>(a0, new_reg));
-                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, stack_size));
-                                blocks[i]->addInstruction(make_unique<RetInstr>());
+                                pop(i);
+				blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, stack_size));
+                                
+				blocks[i]->addInstruction(make_unique<RetInstr>());
                             }
                         //    now_sp+=stack_size;
                             break;
