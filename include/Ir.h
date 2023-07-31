@@ -57,10 +57,12 @@ class Function : public Base {
 public:
     std::vector<BasicBlock*> basic_blocks;
     std::vector<Arg*> args;
+    std::map<std::string, Base*> allocas;
     Module* parent;
     int label_cnt;
     int v_count;
     int arg_count;
+    int alloca_num;
 
     Function(FuncType* type, const std::string& name, Module* parent);
     std::string print();

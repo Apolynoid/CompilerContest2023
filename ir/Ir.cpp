@@ -94,6 +94,7 @@ Function::Function(FuncType* type, const std::string& name, Module* parent) : Ba
     this->label_cnt = 0;
     this->v_count = 0;
     this->arg_count = 0;
+    this->alloca_num = 0;
     parent->add_func(this);
     int size_ = type->args.size();
     for (int i = 0; i < size_; i++) {
@@ -497,10 +498,18 @@ std::string LoadInst::print() {
 }
 
 AllocaInst::AllocaInst(Type* type, BasicBlock* bb) : Instr(get_ptype(type), Alloca, 0, bb){
+    if (dynamic_cast<ArrayType*>(type)) {
+        this->parent->parent->alloca_num = this->parent->parent->alloca_num + static_cast<ArrayType*>(type)->size;
+    }else if (type == intType1 || type == intType8) {
+        this->parent->parent->alloca_num = this->parent->parent->alloca_num + 1;
+    }else if (type == intType32 || type == floatType) {
+        this->parent->parent->alloca_num = this->parent->parent->alloca_num + 4;
+    }
     this->alloc_type = type;
 }
 
 std::string AllocaInst::print() {
+    this->parent->parent->allocas.insert({ this->name, this });
     std::string temp = "%" + this->name + " = " + instr_sign[this->op_id] + " " + this->alloc_type->print();
     return temp;
 }

@@ -4,7 +4,7 @@ RegisterAllocator::RegisterAllocator(RVFunction* func){
     this->now_treg = 0;
 }
 Register RegisterAllocator::AllocateReg(){
-    for(int i = 0; i < 18 ;i++){
+    for(int i = 0; i < 16 ;i++){
         AllocRegister temp = (AllocRegister)(i);
         Register reg = Alloc2reg(temp);
         if(Reg2IRV.find(reg) == Reg2IRV.end()){
@@ -38,8 +38,6 @@ Register Alloc2reg(AllocRegister temp){
         case T1: return Register::t1;
         case T2: return Register::t2;
         case T3: return Register::t3;
-        case T4: return Register::t4;
-        case T5: return Register::t5;
         case S0: return Register::s0;
         case S1: return Register::s1;
         case S2: return Register::s2;

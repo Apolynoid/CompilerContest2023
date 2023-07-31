@@ -31,6 +31,7 @@ private:
     unordered_map<string,StackObj*> name2stackobj;
     unordered_map<StackObj*, std::string> stackobj2name;
     std::unordered_map<Register,StackObj*> reg2stack;
+    unordered_set<Register> PushedRegisters;
     int stack_size = 0;
     int sp_offset = 0;
 

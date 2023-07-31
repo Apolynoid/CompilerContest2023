@@ -12,6 +12,7 @@
 std::unordered_set<std::string> global_var;
 
 const unordered_set<Register> SavedRegisters = {s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10,s11};
+
 int now_sp=0;//指向当前函数栈底相对于全局栈底的位置
 class RegisterAllocator;
 
@@ -34,13 +35,11 @@ BrInstrType CMP2Br(CMP_Type type) {
     }
 }
 void RVFunction::pushTemp(int i){
-    AllocStack(24,i);
+    AllocStack(16,i);
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t0, 0));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t1, 4));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t2, 8));
     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t3, 12));
-    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t4, 16));
-    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t5, 20));
     return ;
 }
 void RVFunction::popTemp(int i){
@@ -48,14 +47,16 @@ void RVFunction::popTemp(int i){
     blocks[i]->addInstruction(make_unique<loadAddr>(t1, sp, 4));
     blocks[i]->addInstruction(make_unique<loadAddr>(t2, sp, 8));
     blocks[i]->addInstruction(make_unique<loadAddr>(t3, sp, 12));
-    blocks[i]->addInstruction(make_unique<loadAddr>(t4, sp, 16));
-    blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, 20));
-    FreeStack(24,i);
+    FreeStack(16,i);
     return ;
 }
 
 void RVFunction::pushIfSave(Register reg,int i){
+    if(PushedRegisters.find(reg)!=PushedRegisters.end()){
+        return ;
+    }
     if(SavedRegisters.find(reg)!=SavedRegisters.end()){
+        PushedRegisters.insert(reg);
         AllocStack(4,i);
         StackObj* new_obj = new StackObj(sp_offset , 4);
         reg2stack[reg] = new_obj;
@@ -65,6 +66,8 @@ void RVFunction::pushIfSave(Register reg,int i){
 void RVFunction::pop(int i){
     for(auto it = reg2stack.begin();it!=reg2stack.end();it++){
         blocks[i]->addInstruction(make_unique<loadAddr>(it->first, sp, stack_size-it->second->offset));
+        reg2stack.erase(it);
+        PushedRegisters.erase(it->first);
         FreeStack(4,i);
     }
 }
@@ -79,7 +82,7 @@ void RVFunction::AllocStack(int size,int i){
 void RVFunction::FreeStack(int size,int i){
     sp_offset -= size;
     if(stack_size-sp_offset>32){
-        blocks[0]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 32));
+        blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 32));
         stack_size -=32;
     }
 }
@@ -109,12 +112,20 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
         }
 
         RVBlock* real_start = IRB2RVB[IRfunc->basic_blocks[0]]; // todo 0号块真是入口块吗？
-        if(blocks[0].get() != real_start) { // todo 应该一定不一样吧
-            start->addInstruction(make_unique<RIInstr>(Addi,sp, sp, -32));
-            stack_size += 32;
-            sp_offset = 0;
-            start->addInstruction(make_unique<JmpInstr>(real_start));
+        int varcnt = IRfunc->v_count;
+        stack_size = (varcnt*4 + 15)/16 * 16+32;
+        start->addInstruction(make_unique<RIInstr>(Addi,sp, sp, -stack_size));
+        sp_offset = 0;
+        if(IRfunc->v_count>16){
+            for(int i = 0; i < IRfunc->v_count ; i++){
+                string temp="v"+to_string(i);
+                AllocStack(4,0);
+                StackObj* new_stack = new StackObj(sp_offset,4);
+                name2stackobj[temp] = new_stack;
+                stackobj2name[new_stack] = temp;
+            }
         }
+        start->addInstruction(make_unique<JmpInstr>(real_start));
         start->succ.insert(real_start);
         real_start->prev.insert(start);
         for(int i = 0;i<blocks.size();i++) {
@@ -189,11 +200,6 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 }
                             if(name2stackobj.find(instr_gep->opes[0]->name)!=name2stackobj.end()) {
                                 auto sobj = name2stackobj[instr_gep->opes[0]->name];
-                              //  name2stackobj[instr_gep->name] = sobj;
-                            //    Register newreg = reg_alloc->GetRegFromIRV(instr_gep->name);
-                              //  blocks[i]->addInstruction(make_unique<RIInstr>(Addi, newreg, sp, sobj->offset-now_sp-sobj->size));
-                               
-                               // index /=size;
                                 StackObj* new_obj = new StackObj(sobj->offset - index , size);
                                 name2stackobj[instr_gep->name] = new_obj;
                             } else {
@@ -226,6 +232,8 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                         }
                         case Alloca: {
                             // todo
+                            if(name2stackobj.find(instr->name)!=name2stackobj.end()) 
+                                break;
                             if(auto t = dynamic_cast<PType*>(instr->type)) {
                                 Type *contained = t->contained;
                                 if(auto tt = dynamic_cast<IntType*>(contained)) {
@@ -251,11 +259,12 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                         case Store: {
                             auto ins = dynamic_cast<StoreInst*>(instr);
                             string src = ins->opes[0]->name;
+                            string tar = ins->opes[1]->name;
                             Register new_reg;
+                            //当第一个操作数是参数寄存器时
                             if(src.substr(0,4)=="arg_"){
                                 int x = src[4]-'0';
                                 new_reg = reg_alloc->GetRegForFuncArgu(x);
-                                auto tar  = ins->opes[1]->name;
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
                                     //blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
@@ -264,15 +273,17 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     
                                 }
                             }
+                            //当第一个操作数是常数时
                             else if(dynamic_cast<Const*>(ins->opes[0])){
                                 int value = static_cast<ConstNumber*>(instr->opes[0])->value;
                                 new_reg = reg_alloc->GetImmReg();
-                                auto tar  = ins->opes[1]->name;
+                                //当第二个操作数绑定了栈对象时
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
                                     blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
                                     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, stack_size-s_obj->offset));
                                 }
+                                //当第二个操作数是全局变量时
                                 else{
                                     if(global_var.find(tar)!=global_var.end()){
                                         Register new_reg2 = reg_alloc->GetRegFromIRV(tar);
@@ -283,22 +294,35 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     }
                                 }
                             }
+                            //当第一个操作数绑定了栈对象时
+                            else if(name2stackobj.find(src)!=name2stackobj.end()){
+                                auto s_obj = name2stackobj[src];
+                                blocks[i]->addInstruction(make_unique<loadAddr>(t6, sp, stack_size-s_obj->offset));
+                                if(name2stackobj.find(tar)!=name2stackobj.end()){
+                                    auto s_obj2 = name2stackobj[tar];
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, t6, stack_size-s_obj2->offset));
+                                }
+                                else if(global_var.find(tar)!=global_var.end()){
+                                    Register new_reg2 = reg_alloc->GetRegFromIRV(tar);
+                                    pushIfSave(new_reg2,i);
+                                    blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, tar));
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(new_reg2, t6,0));
+                                }
+                            }
+                            //当第一个操作数没有绑定栈对象时
                             else{
                                 new_reg = reg_alloc->GetRegFromIRV(src);
                                 pushIfSave(new_reg, i);
                                 auto tar  = ins->opes[1]->name;
                                 if(name2stackobj.find(tar)!=name2stackobj.end()){
                                     auto s_obj = name2stackobj[tar];
-                                    //blocks[i]->addInstruction(make_unique<LiInstr>(new_reg, value));
                                     blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, stack_size-s_obj->offset));
                                 }
-                                else{
-                                    if(global_var.find(tar)!=global_var.end()){
-                                        Register new_reg2 = reg_alloc->GetRegFromIRV(tar);
-                                        pushIfSave(new_reg2,i);
-                                        blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, tar));
-                                        blocks[i]->addInstruction(make_unique<StoreInstr>(new_reg2, new_reg,0));
-                                    }
+                                else if(global_var.find(tar)!=global_var.end()){
+                                    Register new_reg2 = reg_alloc->GetRegFromIRV(tar);
+                                    pushIfSave(new_reg2,i);
+                                    blocks[i]->addInstruction(make_unique<LaInstr>(new_reg2, tar));
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(new_reg2, new_reg,0));
                                 }
                             }
                             break;
@@ -307,8 +331,15 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             auto ins = dynamic_cast<LoadInst*>(instr);
                             string dest = ins->name;
                             string src = ins->opes[0]->name;
-                            Register new_reg = reg_alloc->GetRegFromIRV(dest);
-                            pushIfSave(new_reg,i);
+                            Register new_reg;
+                            //给new_reg赋值，如果instre->name已经绑定栈对象就赋为t6，否则分配一个寄存器
+                            if(name2stackobj.find(dest)!=name2stackobj.end())
+                                new_reg = t6;
+                            else{
+                                new_reg = reg_alloc->GetRegFromIRV(dest);
+                                pushIfSave(new_reg,i);
+                            }
+                            //根据操作数类型判断添加指令
                             if(name2stackobj.find(src)!=name2stackobj.end()){
                                 auto s_obj = name2stackobj[src];
                                 blocks[i]->addInstruction(make_unique<loadAddr>( new_reg, sp, stack_size-s_obj->offset));
@@ -321,6 +352,11 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 auto new_reg2 = reg_alloc->GetRegFromIRV(src);
                                 pushIfSave(new_reg2,i);
                                 blocks[i]->addInstruction(make_unique<loadAddr>(new_reg, new_reg2 ,0));
+                            }
+                            //如果instre->name已经绑定栈对象，就将t6的值存入栈对象
+                            if(name2stackobj.find(dest)!=name2stackobj.end()){
+                                auto s_obj = name2stackobj[dest];
+                                blocks[i]->addInstruction(make_unique<StoreInstr>(sp, new_reg, stack_size-s_obj->offset));
                             }
                             break;
                         }
@@ -355,6 +391,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                             break;
                         }
                         case ICmp:{
+                            //ICmp指令添加CMP_Context
                             CMP_Context new_cmp;
                             switch(static_cast<ICmpInst*>(instr)->icmp_op) {
                                 case IEQ:{
@@ -382,6 +419,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     break;
                                 }
                             }
+                            //如果两个数都为常数，直接计算结果
                             if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr){
                                 int result = false;
                                 auto op1 = dynamic_cast<ConstNumber*>(instr->opes[0])->value;
@@ -413,21 +451,41 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 new_cmp.r1 = t6;
                                 new_cmp.r2 = zero;
                                 new_cmp.type = CMP_Type::ne;
-                            } else if(dynamic_cast<ConstNumber*>(instr->opes[0])==nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])==nullptr) {
-                                new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
-                                pushIfSave(new_cmp.r1,i);
-                                new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
-                                pushIfSave(new_cmp.r2,i);
-                            } else if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
+                            } 
+                            //如果两个数都不是常数，根据是否绑定栈对象来判断是t5/t6还是已经分配的寄存器
+                            else if(dynamic_cast<ConstNumber*>(instr->opes[0])==nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])==nullptr) {
+                                if(name2stackobj.find(instr->opes[0]->name)!=name2stackobj.end()){
+                                    new_cmp.r1 = t5;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[0]->name]->offset));
+                                }
+                                else
+                                    new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                                if(name2stackobj.find(instr->opes[1]->name)!=name2stackobj.end()){
+                                    new_cmp.r2 = t6;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t6, sp, stack_size-name2stackobj[instr->opes[1]->name]->offset));
+                                }
+                                else
+                                    new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                            }
+                            //如果之一是常数 
+                            else if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                 blocks[i]->addInstruction(make_unique<LiInstr>(t6, dynamic_cast<ConstNumber*>(instr->opes[0])->value));
                                 new_cmp.r1 = t6;
-                                new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
-                                pushIfSave(new_cmp.r2,i);
+                                if(name2stackobj.find(instr->opes[1]->name)!=name2stackobj.end()){
+                                    new_cmp.r2 = t5;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[1]->name]->offset));
+                                }
+                                else
+                                    new_cmp.r2 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
                             } else {
                                 blocks[i]->addInstruction(make_unique<LiInstr>(t6, dynamic_cast<ConstNumber*>(instr->opes[1])->value));
-                                new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
-                                pushIfSave(new_cmp.r1,i);
                                 new_cmp.r2 = t6;
+                                if(name2stackobj.find(instr->opes[0]->name)!=name2stackobj.end()){
+                                    new_cmp.r1 = t5;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[0]->name]->offset));
+                                }
+                                else
+                                    new_cmp.r1 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
                             }
                             gene->cmp_context[instr->name] = new_cmp;
                             // todo 比较指令，应该压入一条什么？可能已经做完了
@@ -446,11 +504,18 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                         case Or:
                         case Xor:{
                             auto ins = static_cast<BinaryInst*>(instr);
-                            Register rd = reg_alloc->GetRegFromIRV(instr->name);
-                            pushIfSave(rd,i);
+                            Register rd;
+                            if(name2stackobj.find(ins->name)!=name2stackobj.end()){
+                                rd = t4;
+                                blocks[i]->addInstruction(make_unique<loadAddr>(t4, sp, stack_size-name2stackobj[ins->name]->offset));
+                            }
+                            else{
+                                rd = reg_alloc->GetRegFromIRV(instr->name);
+                                pushIfSave(rd,i);
+                            }
                             bool is_rri = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr||dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
                             if(is_rri) {
-                                // todo
+                                // 如果两个操作数都为常数，直接计算结果
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm1 = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     int imm2 = static_cast<ConstNumber*>(instr->opes[1])->value;
@@ -463,7 +528,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                         case SUB:
                                             finalval = imm1-imm2;
                                             break;
-                                        case MUL:
+                                     case MUL:
                                             finalval = imm1*imm2;
                                             break;
                                         case SDIV:
@@ -497,70 +562,127 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                             finalval = imm1>>imm2;
                                             break;
                                     }
-                                    auto reg = reg_alloc->GetRegFromIRV(instr->name);
-                                    blocks[i]->addInstruction(make_unique<LiInstr>(reg, finalval));
-                                    pushIfSave(reg,i);
+                                    blocks[i]->addInstruction(make_unique<LiInstr>(rd, finalval));
                                     break;
                                 }
+                                //如果两个操作数之一是常数
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     blocks[i]->addInstruction(make_unique<LiInstr>(t6, imm));
-                                    Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
-                                    pushIfSave(r1,i);
+                                    Register r1;
+                                    if(name2stackobj.find(instr->opes[1]->name)!=name2stackobj.end()){
+                                        r1 = t5;
+                                        blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[1]->name]->offset));
+                                    }
+                                    else
+                                        r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
                                     RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
                                     blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r1, t6));
-                                    break;
                                 }else if(dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[1])->value;
                                     blocks[i]->addInstruction(make_unique<LiInstr>(t6, imm));
-                                    Register r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
-                                    pushIfSave(r0,i);
+                                    Register r0;
+                                    if(name2stackobj.find(instr->opes[0]->name)!=name2stackobj.end()){
+                                        r0 = t5;
+                                        blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[0]->name]->offset));
+                                    }
+                                    else
+                                        r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
                                     RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
                                     blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r0, t6));
-                                    break;
                                 }
                             }
-                            Register r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
-                            pushIfSave(r0,i);
-                            Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
-                            pushIfSave(r1,i);
-                            RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
-                            blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r0, r1));
+                            //如果两个操作数都不是常数
+                            else{
+                                Register r0,r1;
+                                if(name2stackobj.find(instr->opes[0]->name)!=name2stackobj.end()){
+                                    r0 = t5;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[0]->name]->offset));
+                                }
+                                else
+                                    r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                                if(name2stackobj.find(instr->opes[1]->name)!=name2stackobj.end()){
+                                    r1 = t6;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t6, sp, stack_size-name2stackobj[instr->opes[1]->name]->offset));
+                                }
+                                else
+                                    r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                                RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
+                                blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r0, r1));
+                            }
+                            //如果instre->name绑定了栈对象，还需要将计算结果存回去
+                            if(name2stackobj.find(instr->name)!=name2stackobj.end()){
+                                auto s_obj = name2stackobj[instr->name];
+                                blocks[i]->addInstruction(make_unique<StoreInstr>(sp, rd, stack_size-s_obj->offset));
+                            }
                             break;
                         }
                         case Sub:{
                             auto ins = static_cast<BinaryInst*>(instr);
-                            Register rd = reg_alloc->GetRegFromIRV(instr->name);
-                            pushIfSave(rd,i);
+                            Register rd;
+                            if(name2stackobj.find(ins->name)!=name2stackobj.end()){
+                                rd = t4;
+                                blocks[i]->addInstruction(make_unique<loadAddr>(t4, sp, stack_size-name2stackobj[ins->name]->offset));
+                            }
+                            else{
+                                rd = reg_alloc->GetRegFromIRV(instr->name);
+                                pushIfSave(rd,i);
+                            }
                             bool is_rri = dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr||dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr;
                             if(is_rri){
                                 if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr&&dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm0 = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     int imm1 = static_cast<ConstNumber*>(instr->opes[1])->value;
                                     int imm = imm0-imm1;
-                                    auto reg = reg_alloc->GetRegFromIRV(instr->name);
-                                    blocks[i]->addInstruction(make_unique<LiInstr>(reg, imm));
-                                    pushIfSave(reg,i);
-                                    break;
+                                    blocks[i]->addInstruction(make_unique<LiInstr>(rd, imm));
                                 }
-                                if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
+                                else if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
                                     imm=-imm;
-                                    Register r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
-                                    pushIfSave(r1,i);
+                                    Register r1;
+                                    if(name2stackobj.find(instr->opes[1]->name)!=name2stackobj.end()){
+                                        r1 = t5;
+                                        blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[1]->name]->offset));
+                                    }
+                                    else
+                                        r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
                                     RIInstrType op_id = RIInstrType::Addi;
                                     blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r1, -imm));
-                                    break;
                                 }
                                 else if(dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[1])->value;
                                     imm=-imm;
-                                    Register r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
-                                    pushIfSave(r0,i);
+                                    Register r0;
+                                    if(name2stackobj.find(instr->opes[0]->name)!=name2stackobj.end()){
+                                        r0 = t5;
+                                        blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[0]->name]->offset));
+                                    }
+                                    else
+                                        r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
                                     RIInstrType op_id = RIInstrType::Addi;
                                     blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r0, imm));
-                                    break;
                                 }
+                            }
+                            else{
+                                Register r0,r1;
+                                if(name2stackobj.find(instr->opes[0]->name)!=name2stackobj.end()){
+                                    r0 = t5;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t5, sp, stack_size-name2stackobj[instr->opes[0]->name]->offset));
+                                }
+                                else
+                                    r0 = reg_alloc->GetRegFromIRV(instr->opes[0]->name);
+                                if(name2stackobj.find(instr->opes[1]->name)!=name2stackobj.end()){
+                                    r1 = t6;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t6, sp, stack_size-name2stackobj[instr->opes[1]->name]->offset));
+                                }
+                                else
+                                    r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
+                                RRInstrType op_id = static_cast<RRInstrType>(ins->op_id);
+                                blocks[i]->addInstruction(make_unique<RRInstr>(op_id, rd, r0, r1));
+                            }
+                            if(name2stackobj.find(instr->name)!=name2stackobj.end()){
+                                auto s_obj = name2stackobj[instr->name];
+                                blocks[i]->addInstruction(make_unique<StoreInstr>(sp, rd, stack_size-s_obj->offset));
                             }
                             break;
                         }
@@ -572,6 +694,9 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     Register new_reg=reg_alloc->GetRegForFuncArgu(j);
                                     if(dynamic_cast<ConstNumber*>(ins->opes[j])){
                                         blocks[i]->addInstruction(make_unique<LiInstr>(new_reg,static_cast<ConstNumber*>(ins->opes[j])->value));
+                                    }
+                                    else if(name2stackobj.find(ins->opes[j]->name)!=name2stackobj.end()){
+                                        blocks[i]->addInstruction(make_unique<loadAddr>(new_reg, sp, stack_size-name2stackobj[ins->opes[j]->name]->offset));
                                     }
                                     else{
                                         Register new_reg2=reg_alloc->GetRegFromIRV(ins->opes[j]->name);
@@ -588,20 +713,33 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
 
                             }
                             if(instr->name.size())
-                                blocks[i]->addInstruction(make_unique<MoveInstr>(reg_alloc->GetRegFromIRV(instr->name), a0));
+                            {
+                                if(name2stackobj.find(instr->name)!=name2stackobj.end()){
+                                    blocks[i]->addInstruction(make_unique<StoreInstr>(sp, a0, stack_size-name2stackobj[instr->name]->offset));
+                                }
+                                else{
+                                    Register new_reg = reg_alloc->GetRegFromIRV(instr->name);
+                                    blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, a0));
+                                }
+                            }
                             break;
                         }
                         case Ret:{
                             auto ins = static_cast<ReturnInst*>(instr);
-                            blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, stack_size));
                             if(ins->opes.size()==0){
                                 blocks[i]->addInstruction(make_unique<RetInstr>());
                                 // todo succ
                             }else{
-                                auto new_reg = reg_alloc->GetRegFromIRV(ins->opes[0]->name);
-                                pushIfSave(new_reg,i);
+                                Register new_reg;
+                                if(name2stackobj.find(ins->opes[0]->name)!=name2stackobj.end()){
+                                    new_reg = t6;
+                                    blocks[i]->addInstruction(make_unique<loadAddr>(t6, sp, stack_size-name2stackobj[ins->opes[0]->name]->offset));
+                                }
+                                else 
+                                    new_reg = reg_alloc->GetRegFromIRV(ins->opes[0]->name);
                                 pop(i);
                                 blocks[i]->addInstruction(make_unique<MoveInstr>(a0, new_reg));
+                                blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, stack_size));
                                 blocks[i]->addInstruction(make_unique<RetInstr>());
                             }
                         //    now_sp+=stack_size;
@@ -628,7 +766,7 @@ void Generator::GenerateRisc_V(){
     }
     GenerateFunctionCode();
     GenerateGlobalVarCode();
-    GenerateLibCode();
+    //GenerateLibCode();
 }
 void Generator::GenerateLibCode(){
     for(auto func:module->func_list){
