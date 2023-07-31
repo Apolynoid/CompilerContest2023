@@ -49,8 +49,6 @@ SRCS += ./backend/register.cpp
 SRCS += main.cpp
 
 main:
-	flex --header-file=lex.yy.h -o lex.yy.cpp lexerer.l
-	bison -d parser.y
 	g++ -g -o compiler $(SRCS) $(INCLUDES)
 test.s:test.ll
 	llc -O0 --march=riscv64 -o test.s test.ll

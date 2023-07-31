@@ -638,7 +638,7 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                 }
                                 else if(dynamic_cast<ConstNumber*>(instr->opes[0])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[0])->value;
-                                    imm=-imm;
+                        //            imm=-imm;
                                     Register r1;
                                     if(name2stackobj.find(instr->opes[1]->name)!=name2stackobj.end()){
                                         r1 = t5;
@@ -646,8 +646,9 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                     }
                                     else
                                         r1 = reg_alloc->GetRegFromIRV(instr->opes[1]->name);
-                                    RIInstrType op_id = RIInstrType::Addi;
-                                    blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r1, -imm));
+                                    blocks[i]->addInstruction(make_unique<RRInstr>(SUB, r1, zero, r1));
+				    RIInstrType op_id = RIInstrType::Addi;
+                                    blocks[i]->addInstruction(make_unique<RIInstr>(op_id, rd, r1, imm));
                                 }
                                 else if(dynamic_cast<ConstNumber*>(instr->opes[1])!=nullptr) {
                                     int imm = static_cast<ConstNumber*>(instr->opes[1])->value;
@@ -703,9 +704,13 @@ RVFunction::RVFunction(string name, Function* IRfunc,Generator* gene):name(name)
                                         blocks[i]->addInstruction(make_unique<MoveInstr>(new_reg, new_reg2));
                                     }
                                 }
+				blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, -4));
+				blocks[i]->addInstruction(make_unique<StoreInstr>(sp, ra, 0));
                                 pushTemp(i);
                                 blocks[i]->addInstruction(make_unique<CallInstr>(ins->opes[ins->opes.size()-1]->name));
                                 popTemp(i);
+				blocks[i]->addInstruction(make_unique<loadAddr>(ra, sp, 0));
+				blocks[i]->addInstruction(make_unique<RIInstr>(Addi, sp, sp, 4));
                              //   blocks[i]->addInstruction(make_unique<CallInstr>(ins->opes[ins->opes.size()-2]->name));
                             } else{
                                 // todo 分配到堆栈
